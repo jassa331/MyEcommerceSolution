@@ -1,0 +1,721 @@
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+h1:focus {
+    outline: none;
+}
+
+a, .btn-link {
+    color: #0071c1;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+@media (max-width: 768px) {
+    .login-boxx {
+        padding: 20px;
+        margin: 30px auto;
+    }
+}
+/* The switch - container */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px; /* width of toggle */
+    height: 24px; /* height of toggle */
+}
+
+    /* Hide default checkbox */
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc; /* default gray */
+    transition: 0.4s;
+    border-radius: 24px; /* rounded edges */
+}
+
+    /* The circle inside the slider */
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+/* When checked */
+.switch input:checked + .slider {
+    background-color: #0095f6; /* blue when ON */
+}
+
+    /* Move the circle when checked */
+    .switch input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .login-boxx {
+        width: 95%;
+        padding: 15px;
+    }
+
+        .login-boxx h2 {
+            font-size: 20px;
+        }
+
+        .login-boxx input[type="text"],
+        .login-boxx input[type="number"],
+        .login-boxx input[type="file"],
+        .login-boxx button {
+            padding: 8px;
+            font-size: 14px;
+        }
+}
+.login-boxx {
+    width: 1800px;
+    padding: 40px 30px;
+    border-radius: 10px;
+    margin-top: 10px; /* Adds space above the search bar */
+    margin-bottom: 10px;
+    margin-right: 10px;
+    margin-left: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    text-align: center; /* Background image */
+    background-image: url('/images/DDDD.jfif'); /* change path to your image */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white; /* text color */
+}
+/* Base styles */
+.login-boxx {
+    width: 100%;
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 30px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+   
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+@media (max-width: 767px) {
+    .table-container table, .table-container thead, .table-container tbody,
+    .table-container th, .table-container td, .table-container tr {
+        display: block;
+    }
+
+        .table-container thead tr {
+            display: none; /* Hide header on mobile */
+        }
+
+    .table-container td {
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 10px;
+    }
+
+        .table-container td::before {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            width: 45%;
+            white-space: nowrap;
+            font-weight: bold;
+            content: attr(data-label);
+        }
+
+    .table-container img {
+        max-width: 50px;
+        max-height: 50px;
+    }
+}
+    .login-boxx h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .login-boxx input[type="text"],
+    .login-boxx input[type="number"],
+    .login-boxx input[type="file"],
+    .login-boxx button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    .login-boxx button {
+        background-color: #1b6ec2;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .login-boxx button:hover {
+            background-color: #155a9c;
+        }
+
+    .login-boxx label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+    }
+
+/* Media Queries */
+
+/* Tablets */
+@media (max-width: 768px) {
+    .login-boxx {
+        padding: 20px;
+        margin: 30px auto;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .login-boxx {
+        width: 95%;
+        padding: 15px;
+    }
+
+        .login-boxx h2 {
+            font-size: 20px;
+        }
+
+        .login-boxx input[type="text"],
+        .login-boxx input[type="number"],
+        .login-boxx input[type="file"],
+        .login-boxx button {
+            padding: 8px;
+            font-size: 14px;
+        }
+}
+
+
+/* Base login box - Instagram style */
+/*.login-box {
+    width: 350px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #ffffff;
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 50px auto;*/ /* center horizontally */
+/*}*/
+
+    /* Inputs */
+    /*.login-box input {
+        width: 100%;
+        padding: 10px 12px;
+        margin: 8px 0;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        background-color: #fafafa;
+        font-size: 14px;
+    }
+
+        .login-box input::placeholder {
+            color: #999;
+        }*/
+
+    /* Button */
+    /*.login-box button {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 12px;
+        background-color: #41484d;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+    }
+
+        .login-box button:hover {
+            background-color: #252a2e;*/
+        }
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 150px; /* smaller sidebar */
+        padding: 15px;
+    }
+
+    .login-boxx {
+        width: 80%; /* adjust box width */
+        margin: 20px auto;
+    }
+}
+
+/* iPhones / Mobile */
+@media (max-width: 768px) {
+    .layout {
+        flex-direction: column; /* stack sidebar and content */
+    }
+
+    .main-content {
+        margin-left: 0; /* remove sidebar spacing */
+        padding: 10px;
+    }
+
+    .login-boxx {
+        width: 100%; /* almost full width */
+        padding: 20px;
+        margin: 20px auto;
+    }
+}
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* full screen vertically */
+    background-color: #fafafa;
+}
+
+.login-box {
+    width: 350px;
+    padding: 30px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #ffffff;
+    text-align: center;
+}
+
+.logo-container {
+    margin-bottom: 20px;
+}
+
+.logo {
+    width: 100px; /* adjust as needed */
+    height: auto;
+    display: block;
+    margin: 0 auto; /* center horizontally */
+}
+
+/* Inputs */
+.login-box input,
+.login-box button {
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #dbdbdb;
+}
+
+.login-box button {
+    background-color: #41484d;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+    .login-box button:hover {
+        background-color: #252a2e;
+    }
+
+.login-box .small-text {
+    font-size: 12px;
+    color: #999;
+    margin-top: 12px;
+}
+
+    /* Small text link */
+    .login-box .small-text {
+        font-size: 12px;
+        color: #999;
+        margin-top: 12px;
+        display: block;
+    }
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+    .login-box {
+        width: 90%; /* almost full width on tablets */
+        padding: 30px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-box {
+        width: 95%; /* full width on mobile */
+        padding: 20px 15px;
+    }
+
+        .login-box input,
+        .login-box button {
+            font-size: 13px; /* slightly smaller inputs */
+            padding: 8px 10px;
+        }
+}
+
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* General page background */
+body {
+    background-color: #f5f7fa;
+    font-family: Arial, sans-serif;
+}
+
+/* Inputs and textareas */
+input[type="text"],
+input[type="number"],
+input[type="file"],
+textarea {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+.sidebarr {
+    position: fixed;
+    width: 250px;
+    height: 100vh;
+    background-color: #111;
+    padding-top: 20px;
+}
+
+    .sidebarr a {
+        display: block;
+        padding: 15px 20px;
+        color: white;
+        text-decoration: none;
+    }
+
+        .sidebarr a:hover {
+            background-color: #575757;
+        }
+/* Custom button */
+.JJDD {
+    background: #000;
+    display: inline-block;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Focus effect */
+input:focus,
+textarea:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 6px rgba(79, 70, 229, 0.3);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #888;
+}
+
+/* Labels */
+label {
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+/* File input */
+input[type="file"] {
+    padding: 6px;
+    border: 2px dashed #bbb;
+    background-color: #fafafa;
+    cursor: pointer;
+}
+
+    input[type="file"]:hover {
+        border-color: #4f46e5;
+    }
+
+/* Buttons */
+button {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+    button:hover {
+        background-color: #4338ca;
+    }
+
+/* Toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+input:checked + .slider {
+    background-color: #4f46e5;
+}
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+td .switch {
+    margin: 0 auto;
+}
+
+/* Table */
+.table-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 20px auto;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    table-layout: fixed;
+}
+
+th {
+    background-color: #ffffff;
+    color: black;
+    font-weight: 600;
+    padding: 12px 15px;
+    text-align: left;
+}
+
+td img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+}
+
+th, td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #ffffff;
+    color: #0a0a0a;
+    vertical-align: middle;
+}
+
+    th:nth-child(1), td:nth-child(1) {
+        width: 80px;
+    }
+
+    th:nth-child(2), td:nth-child(2) {
+        width: 45%;
+    }
+
+    th:nth-child(3), td:nth-child(3) {
+        width: 15%;
+    }
+
+    th:nth-child(4), td:nth-child(4) {
+        width: 20%;
+    }
+
+tr:hover {
+    background-color: #f1f5f9;
+}
+
+tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+@media (max-width: 600px) {
+    th, td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+/* Validation */
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+/* Error UI */
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDki...) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred.";
+    }
+
+/* Loading animation */
+.loading-progress {
+    position: relative;
+    display: block;
+    width: 8rem;
+    height: 8rem;
+    margin: 20vh auto 1rem auto;
+}
+
+    .loading-progress circle {
+        fill: none;
+        stroke: #e0e0e0;
+        stroke-width: 0.6rem;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+    }
+
+        .loading-progress circle:last-child {
+            stroke: #1b6ec2;
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
+
+.loading-progress-text {
+    position: absolute;
+    text-align: center;
+    font-weight: bold;
+    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+}
+
+    .loading-progress-text:after {
+        content: var(--blazor-load-percentage-text, "Loading");
+    }
+
+/* Dropdowns */
+select {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s ease-in-out;
+    box-sizing: border-box;
+    background-color: white;
+    color: #333;
+}
+
+    select:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 6px rgba(79, 70, 229, 0.3);
+    }
+
+code {
+    color: #c02d76;
+}
+

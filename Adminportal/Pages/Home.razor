@@ -1,0 +1,190 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.WebUtilities
+
+<div class="layout">
+    <Sidebar />
+
+    <div class="main-content">
+        <h1 style="color:black">Your Cart Items</h1>
+
+        <div class="login-boxx">
+            <h2 style="color:black;">Add Product</h2>
+
+            <label style="color:black;">Product Name</label>
+            <input type="text" placeholder="Name" @bind="product.Name" />
+
+            <label style="color:black;">Description</label>
+            <input type="text" placeholder="Description" @bind="product.Description" />
+
+            <label style="color:black;">Price</label>
+            <input type="number" placeholder="Price" @bind="product.Price" />
+
+            <label style="color:black;">Category</label>
+            <input type="text" placeholder="Category" @bind="product.Category" />
+
+            <label style="color:black;">Select Product Image</label>
+            <InputFile OnChange="OnFileSelected" />
+
+            <label style="color:black;">Stock</label>
+            <label class="switch">
+                <input type="checkbox" @bind="product.InStock" />
+                <span class="slider"></span>
+            </label>
+            <span style="margin-left: 10px;">In Stock</span>
+
+            <button class="JJDD" @onclick="AddProduct">Upload Product</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .layout {
+        display: flex;
+    }
+
+    .main-content {
+        margin-left: 200px; /* Sidebar space */
+        padding: 20px;
+    }
+
+    .login-boxx input,
+    .login-boxx button {
+        display: block;
+        margin: 8px 0;
+        padding: 8px;
+        width: 100%;
+        max-width: 400px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .JJDD {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+        .JJDD:hover {
+            background-color: #0056b3;
+        }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 20px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #007bff;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+</style>
+
+@code {
+    private Product product = new();
+    private IBrowserFile? file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+        }
+    }
+
+
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+    private async Task AddProduct()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            await JS.InvokeVoidAsync("alert", "Login again, token expired!");
+            Navigation.NavigateTo("https://localhost:7175/");
+            return;
+        }
+
+        var form = new MultipartFormDataContent
+    {
+        { new StringContent(product.Name ?? ""), "Name" },
+        { new StringContent(product.Description ?? ""), "Description" },
+        { new StringContent(product.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)), "Price" },
+        { new StringContent(product.Category ?? ""), "Category" },
+        { new StringContent(product.InStock.ToString()), "InStock" }
+    };
+
+        var fileContent = new StreamContent(file.OpenReadStream(5 * 1024 * 1024));
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+        form.Add(fileContent, "Image", file.Name);
+
+        // ✅ Include Bearer token in header
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:7255/api/Product/add");
+        request.Content = form;
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        using var response = await Http.SendAsync(request);
+        var msg = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+            await JS.InvokeVoidAsync("alert", "✅ Product uploaded successfully!");
+        else
+            await JS.InvokeVoidAsync("alert", $"❌ Upload failed!\n{response.StatusCode}: {msg}");
+    }
+
+
+    private class Product
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Price { get; set; }
+        public string Category { get; set; } = "";
+        public bool InStock { get; set; }
+    }
+}

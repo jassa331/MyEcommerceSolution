@@ -1,0 +1,158 @@
+﻿@page "/"
+@using System.Net.Http.Json
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="login-container">
+    <div class="login-box">
+        <div class="logo-container">
+            <img src="images/logo.png" alt="Logo" class="logo" />
+        </div>
+
+        <h1 style="color:black;">Login Account</h1>
+
+        <input type="text" placeholder="Email" @bind="loginModel.Email" required />
+        <input type="password" placeholder="Password" @bind="loginModel.Password" required />
+
+        <button @onclick="LoginUser">Login</button>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <p style="color:red;">@message</p>
+        }
+    </div>
+</div>
+ 
+<style>
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+    }
+
+    .login-box {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        width: 350px;
+        text-align: center;
+    }
+
+    .logo-container {
+        margin-bottom: 20px;
+    }
+
+    .logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    input {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        outline: none;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        background: #0078d7;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+        button:hover {
+            background: #005fa3;
+        }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+</style>
+
+@code {
+    private LoginModel loginModel = new();
+    private string message = "";
+
+    private async Task LoginUser()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7124/api/Account/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (result != null)
+                {
+                    // ✅ Save token & user info
+                    await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                    await JS.InvokeVoidAsync("localStorage.setItem", "userId", result.UserId.ToString());
+                    await JS.InvokeVoidAsync("localStorage.setItem", "isAdmin", result.IsAdmin.ToString().ToLower());
+
+                    // ✅ Redirect properly
+                    if (result.IsAdmin)
+                    {
+                        Navigation.NavigateTo($"https://localhost:7215/?token={result.Token}", forceLoad: true); // Admin portal
+                    }
+                    else
+                    {
+                        Navigation.NavigateTo("/user-dashboard", forceLoad: true);
+                    }
+                }
+                else
+                {
+                    message = "Login failed: empty response from server.";
+                }
+            }
+            else
+            {
+                var errorText = await response.Content.ReadAsStringAsync();
+                message = $"Login failed: {response.StatusCode} - {errorText}";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+    public class LoginModel
+    {
+        [JsonPropertyName("email")]
+        public string Email { get; set; }
+
+        [JsonPropertyName("password")]
+        public string Password { get; set; }
+    }
+
+    public class LoginResponse
+    {
+        [JsonPropertyName("token")]
+        public string Token { get; set; }
+
+        [JsonPropertyName("userId")]
+        public Guid UserId { get; set; }
+
+        [JsonPropertyName("isAdmin")]
+        public bool IsAdmin { get; set; }
+
+        [JsonPropertyName("redirectUrl")]
+        public string RedirectUrl { get; set; }
+    }
+}

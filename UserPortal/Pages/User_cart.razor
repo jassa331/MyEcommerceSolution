@@ -1,0 +1,172 @@
+﻿@page "/user_cart"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<h3 style="text-align:center; color:#222;">🛒 My Cart</h3>
+
+@if (isLoading)
+{
+    <div style="text-align:center; margin-top:50px;">
+        <p>Loading cart...</p>
+        <div class="spinner"></div>
+    </div>
+}
+else if (!cartItems.Any())
+{
+    <p style="text-align:center; margin-top:50px;">Your cart is empty.</p>
+}
+else
+{
+    <div class="cart-container">
+        @foreach (var item in cartItems)
+        {
+            <div class="cart-card">
+                <img src="@GetFullImageUrl(item.ProductImageUrl)" alt="@item.ProductName" class="cart-image" />
+                <div class="cart-details">
+                    <h4>@item.ProductName</h4>
+                    <p class="desc">@item.ProductDescription</p>
+                    <p><strong>Price:</strong> ₹@item.ProductPrice</p>
+                    <p><strong>Quantity:</strong> @item.Quantity</p>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    /* Grid layout */
+    .cart-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .cart-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .cart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+    .cart-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .cart-details {
+        text-align: center;
+    }
+
+        .cart-details h4 {
+            margin: 10px 0 5px;
+            font-size: 18px;
+            color: #222;
+        }
+
+        .cart-details .desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .cart-details p {
+            margin: 4px 0;
+            font-size: 15px;
+        }
+
+    /* Spinner */
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #333;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: 20px auto;
+        animation: spin 1s linear infinite;
+    }
+
+</style>
+
+@code {
+    private List<CartItem> cartItems = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                NavManager.NavigateTo("/login");
+                return;
+            }
+
+            // Attach JWT token
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7117/api/Cart/GetByUser");
+
+            if (response.IsSuccessStatusCode)
+            {
+                cartItems = await response.Content.ReadFromJsonAsync<List<CartItem>>() ?? new List<CartItem>();
+            }
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                    err.Contains("User ID in token"))
+                {
+                    // Invalid/expired token → remove & redirect
+                    await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                    NavManager.NavigateTo("/login");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ API Error: {response.StatusCode} - {err}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error loading cart: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetFullImageUrl(string relativeUrl)
+    {
+        if (string.IsNullOrWhiteSpace(relativeUrl)) return "images/noimage.png";
+        return relativeUrl.StartsWith("http") ? relativeUrl : $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
+    }
+
+    public class CartItem
+    {
+        public Guid CartItemID { get; set; }
+        public Guid UsersofuserportalID { get; set; }
+        public string ProductName { get; set; } = "";
+        public string ProductDescription { get; set; } = "";
+        public decimal ProductPrice { get; set; }
+        public int Quantity { get; set; }
+        public string ProductImageUrl { get; set; } = "";
+    }
+}

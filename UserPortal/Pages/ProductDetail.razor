@@ -1,0 +1,218 @@
+﻿@page "/product/{name}"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
+
+<h2 style="color:black; text-align:center; margin-top:20px;">Product Details</h2>
+
+@if (product == null)
+{
+    <p style="text-align:center;">Loading product details...</p>
+}
+else
+{
+    <div class="product-detail-box">
+        <img src="@GetFullImageUrl(product.ImageUrl)" alt="@product.Name" class="product-image" />
+        <div class="product-info">
+            <h2>@product.Name</h2>
+            <p>@product.Description</p>
+            <h4>Price: ₹@product.Price</h4>
+
+            <button class="add-btn" @onclick="() => AddToCart(product)">Add to Cart 🛒</button>
+            <button class="back-btn" @onclick="GoBack">Go Back</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string name { get; set; }
+
+    private ProductImage? product;
+    private Guid? currentUserId = null;
+    private string? token = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get JWT token and userId from localStorage
+        token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        var idString = await JS.InvokeAsync<string>("localStorage.getItem", "userId");
+
+        if (!string.IsNullOrEmpty(idString))
+            currentUserId = Guid.Parse(idString);
+
+        // Load all products
+        var allProducts = await Http.GetFromJsonAsync<List<ProductImage>>("https://localhost:7117/api/ProductImage/GetAll");
+        product = allProducts?.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string GetFullImageUrl(string relativeUrl)
+    {
+        if (string.IsNullOrWhiteSpace(relativeUrl))
+            return "images/noimage.png";
+
+        if (relativeUrl.StartsWith("http"))
+            return relativeUrl;
+
+        return $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
+    }
+
+    private void GoBack()
+    {
+        NavManager.NavigateTo("/user-dashboard");
+    }
+
+    private async Task AddToCart(ProductImage product)
+    {
+        if (currentUserId == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please login first!");
+            return;
+        }
+
+        var cartItem = new
+        {
+            UsersofuserportalID = currentUserId,
+            ProductId = product.ProductId,
+            ProductName = product.Name,
+            ProductDescription = product.Description,
+            ProductPrice = product.Price,
+            Quantity = 1,
+            ProductImageUrl = product.ImageUrl
+        };
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:7117/api/Cart/Add")
+            {
+                Content = JsonContent.Create(cartItem)
+            };
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+                await JS.InvokeVoidAsync("alert", $"{product.Name} added to your cart!");
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"❌ Failed: {response.StatusCode} → {err}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+    }
+
+    public class ProductImage
+    {
+        public Guid ProductId { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Price { get; set; }
+        public string ImageUrl { get; set; } = "";
+    }
+}
+
+<style>
+    /* Container */
+    .product-detail-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        max-width: 800px;
+        margin: 30px auto;
+        align-items: flex-start;
+    }
+
+        /* Product Image */
+        .product-detail-box img.product-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+    /* Product Info */
+    .product-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+        /* Product title */
+        .product-info h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.3rem;
+            color: #000;
+        }
+
+        /* Description */
+        .product-info p {
+            margin: 0 0 10px 0;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        /* Price */
+        .product-info h4 {
+            margin: 10px 0;
+            font-weight: bold;
+            color: #ff9900;
+        }
+
+    /* Buttons */
+    .add-btn, .back-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 25px;
+        margin-right: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    /* Add to Cart Button */
+    .add-btn {
+        background-color: black;
+        color: white;
+    }
+
+        .add-btn:hover {
+            background-color: #333;
+        }
+
+    /* Back Button */
+    .back-btn {
+        background-color: #ccc;
+        color: #000;
+    }
+
+        .back-btn:hover {
+            background-color: #999;
+        }
+
+    /* Responsive */
+    
+
+    .product-detail-box img.product-image {
+        margin-bottom: 20px;
+    }
+
+    .product-info {
+        align-items: center;
+        text-align: center;
+    }
+
+    .add-btn, .back-btn {
+        margin-bottom: 10px;
+    }
+
+    }
+</style>

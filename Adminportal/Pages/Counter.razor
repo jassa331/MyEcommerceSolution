@@ -1,0 +1,237 @@
+﻿@page "/counter"
+@inject IJSRuntime JS
+@inject HttpClient Http
+
+<h2 style="text-align:center; color:black;">My Uploaded Products</h2>
+
+<div style="text-align:center; margin-bottom:20px;">
+    <h4>Counter: @currentCount</h4>
+    <button class="btn" @onclick="IncrementCount">Click me</button>
+</div>
+
+@if (isLoading)
+{
+    <p style="text-align:center;">Loading...</p>
+}
+else if (products == null || products.Count == 0)
+{
+    <p style="text-align:center;">No products found.</p>
+}
+else
+{
+    <div class="login-boxx">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        @* <th>Name</th> *@
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                        <th>Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in products)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                {
+                                    <img src="@p.ImageUrl" alt="@p.Name" width="100" height="100" />
+                                }
+                                else
+                                {
+                                    <span>No Image</span>
+                                }
+                            </td>
+                           @*  <td>@p.Name</td> *@
+                            <td>@p.Description</td>
+                            <td>₹@p.Price</td>
+                            <td>@p.Category</td>
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox" checked="@p.InStock" disabled />
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ProductDto>? products;
+    private bool isLoading = true;
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Console.WriteLine("⚠️ No token found. Please login.");
+                isLoading = false;
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7255/api/Product/my-products");
+
+            if (response.IsSuccessStatusCode)
+            {
+                products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
+
+                // ✅ Fix image paths if stored locally
+                foreach (var p in products)
+                {
+                    if (!string.IsNullOrEmpty(p.ImageUrl) && !p.ImageUrl.StartsWith("http"))
+                    {
+                        p.ImageUrl = $"https://localhost:7255/{p.ImageUrl.Replace("\\", "/")}";
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"❌ Failed to load products. Status: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🔥 Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class ProductDto
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public decimal Price { get; set; }
+        public string? Category { get; set; }
+        public string? ImageUrl { get; set; }
+        public bool InStock { get; set; }
+    }
+}
+
+<style>
+    .btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+    .login-boxx {
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+        max-width: 1000px;
+        margin: 20px auto;
+    }
+
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .table-container th, .table-container td {
+        padding: 12px 15px;
+        text-align: center;
+    }
+
+    .table-container th {
+        background-color: black;
+        color: white;
+    }
+
+    .table-container tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .table-container tr:hover {
+        background-color: #d6e4ff;
+        transition: 0.3s;
+    }
+
+    .table-container img {
+        border-radius: 8px;
+        object-fit: cover;
+        transition: transform 0.2s;
+    }
+
+        .table-container img:hover {
+            transform: scale(1.05);
+        }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 25px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: default;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 25px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 21px;
+            width: 21px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #4caf50;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(25px);
+        }
+</style>

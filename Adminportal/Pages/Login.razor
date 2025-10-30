@@ -1,0 +1,51 @@
+﻿@* @page "/login"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<h3 style="color:black;">Admin Login</h3>
+
+<div class="login-boxx">
+    <input type="email" placeholder="Email" @bind="login.Email" />
+    <input type="password" placeholder="Password" @bind="login.Password" />
+    <button @onclick="LoginUser">Login</button>
+</div>
+
+@code {
+    private LoginModel login = new();
+
+    private async Task LoginUser()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7124/api/Account/login", login);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var token = await response.Content.ReadAsStringAsync();
+
+                // ✅ Save token in localStorage
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+
+                await JS.InvokeVoidAsync("alert", "Login Successful!");
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var msg = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"Login failed: {msg}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "Error: " + ex.Message);
+        }
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}
+ *@

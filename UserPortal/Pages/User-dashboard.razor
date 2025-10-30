@@ -1,0 +1,222 @@
+﻿@page "/user-dashboard"
+@using System.Net.Http.Json
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
+
+<!-- 🔹 Header Section -->
+<header style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:10px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.1); flex-wrap:wrap;">
+    <div style="display:flex; justify-content:center; flex:1; margin:10px 0;">
+        <div style="display:flex; max-width:400px; width:100%;">
+            <input type="text"
+                   placeholder="Search products..."
+                   @bind="searchText"
+                   style="padding:8px 10px; border-radius:5px 0 0 5px; border:1px solid #ccc; flex:1; height:40px;" />
+            <button @onclick="SearchProducts"
+                    style="padding:0 15px; border:none; background:black; color:#fff; border-radius:0 5px 5px 0; cursor:pointer; height:40px;">
+                🔍
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- 🔹 Navigation Menu -->
+<nav style="display:flex; flex-wrap:wrap; gap:10px; background:#f7f7f7; padding:10px 20px;">
+    <a href="home" style="text-decoration:none; color:#000;">Home</a>
+    <a href="user_cart" style="text-decoration:none; color:#000;">My Cart</a>
+    <a href="login" style="text-decoration:none; color:#000;">Logout</a>
+</nav>
+
+<!-- 🔹 Main Product Display -->
+<main style="padding:20px;">
+    @if (filteredProducts == null)
+    {
+        <p>Loading products...</p>
+    }
+    else if (!filteredProducts.Any())
+    {
+        <p>No products found.</p>
+    }
+    else
+    {
+        <h1 style="color:black;">All Products</h1>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+            @foreach (var product in filteredProducts)
+            {
+                <div style="background:#fff; border-radius:10px; padding:15px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                    <!-- Image -->
+                    <div style="cursor:pointer;" @onclick="() => GoToProductDetails(product.Name)">
+                        <img src="@GetFullImageUrl(product.ImageUrl)" alt="@product.Name"
+                             style="width:100%; height:200px; object-fit:cover; border-radius:8px;" />
+                    </div>
+
+                    <!-- Product Info -->
+                    <h4 style="cursor:pointer; margin-top:10px;" @onclick="() => GoToProductDetails(product.Name)">
+                        @product.Name
+                    </h4>
+                    <p>@product.Description</p>
+                    <p style="color:#ff9900; font-weight:bold;">Price: ₹@product.Price</p>
+
+                    <!-- 🔹 Quantity Selector -->
+                    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:5px;">
+                        <button @onclick="() => DecreaseQuantity(product.ProductId)"
+                                style="width:28px; height:28px; border:none; background:#ccc; color:black; border-radius:4px; cursor:pointer;">
+                            −
+                        </button>
+
+                        <span style="min-width:25px; display:inline-block;">@GetQuantity(product.ProductId)</span>
+
+                        <button @onclick="() => IncreaseQuantity(product.ProductId)"
+                                style="width:28px; height:28px; border:none; background:#ccc; color:black; border-radius:4px; cursor:pointer;">
+                            +
+                        </button>
+                    </div>
+
+                    <!-- Add to Cart -->
+                    <button @onclick="() => AddToCart(product)"
+                            style="background:black; color:#fff; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; margin-top:10px;">
+                        Add to Cart 🛒
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</main>
+
+@code {
+    // 🔹 Local variables
+    private string searchText = "";
+    private List<ProductImage> allProducts = new();
+    private List<ProductImage> filteredProducts = new();
+    private Dictionary<Guid, int> productQuantities = new(); // Track quantity per product
+    private Guid? currentUserId = null;
+    private string? token;
+
+    // 🔹 Initialization
+    protected override async Task OnInitializedAsync()
+    {
+        token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        var idString = await JS.InvokeAsync<string>("localStorage.getItem", "userId");
+
+        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(idString))
+        {
+            await JS.InvokeVoidAsync("alert", "Please login first!");
+            NavManager.NavigateTo("/");
+            return;
+        }
+
+        currentUserId = Guid.Parse(idString);
+
+        allProducts = await Http.GetFromJsonAsync<List<ProductImage>>("https://localhost:7117/api/ProductImage/GetAll");
+        filteredProducts = allProducts;
+
+        // Initialize all product quantities to 1
+        foreach (var product in allProducts)
+        {
+            productQuantities[product.ProductId] = 1;
+        }
+    }
+
+    // 🔹 Quantity Controls
+    private int GetQuantity(Guid productId)
+    {
+        return productQuantities.ContainsKey(productId) ? productQuantities[productId] : 1;
+    }
+
+    private void IncreaseQuantity(Guid productId)
+    {
+        if (productQuantities.ContainsKey(productId))
+            productQuantities[productId]++;
+        else
+            productQuantities[productId] = 1;
+    }
+
+    private void DecreaseQuantity(Guid productId)
+    {
+        if (productQuantities.ContainsKey(productId) && productQuantities[productId] > 1)
+            productQuantities[productId]--;
+    }
+
+    // 🔹 Add Product to Cart
+    private async Task AddToCart(ProductImage product)
+    {
+        if (currentUserId == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please login first!");
+            return;
+        }
+
+        int quantity = GetQuantity(product.ProductId);
+
+        var cartItem = new
+        {
+            UsersofuserportalID = currentUserId,
+            ProductId = product.ProductId,
+            ProductName = product.Name,
+            ProductDescription = product.Description,
+            ProductPrice = product.Price,
+            Quantity = quantity, // ✅ User-selected quantity
+            ProductImageUrl = product.ImageUrl
+        };
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:7117/api/Cart/Add")
+            {
+                Content = JsonContent.Create(cartItem)
+            };
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+                await JS.InvokeVoidAsync("alert", $"{product.Name} (x{quantity}) added to your cart!");
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"❌ Failed: {response.StatusCode} → {err}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+    }
+
+    // 🔹 Search Functionality
+    private void SearchProducts()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            filteredProducts = allProducts;
+        else
+            filteredProducts = allProducts
+                .Where(p => p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+    }
+
+    // 🔹 Product Navigation
+    private void GoToProductDetails(string productName)
+    {
+        NavManager.NavigateTo($"/product/{Uri.EscapeDataString(productName)}");
+    }
+
+    // 🔹 Image Helper
+    private string GetFullImageUrl(string relativeUrl)
+    {
+        if (string.IsNullOrWhiteSpace(relativeUrl)) return "images/noimage.png";
+        if (relativeUrl.StartsWith("http")) return relativeUrl;
+        return $"https://localhost:7066/{relativeUrl.TrimStart('/')}";
+    }
+
+    // 🔹 Model Class
+    public class ProductImage
+    {
+        public Guid ProductId { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Price { get; set; }
+        public string ImageUrl { get; set; } = "";
+    }
+}
