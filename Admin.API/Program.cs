@@ -138,14 +138,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseStaticFiles();
 // ✅ Serve Static Files (images, etc.)
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(app.Environment.ContentRootPath, "wwwroot")),
-    RequestPath = "/static"
-});
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//        Path.Combine(app.Environment.ContentRootPath, "wwwroot")),
+//    RequestPath = "/static"
+//});
 
 // ✅ Middleware Pipeline
 app.UseHttpsRedirection();
