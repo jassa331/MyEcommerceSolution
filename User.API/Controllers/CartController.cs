@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Security.Claims;
 using User.API.DAL;
 using User.API.Models;
@@ -19,56 +20,58 @@ namespace User.API.Controllers
             _context = context;
         }
 
-        [Authorize]
+
+
         [HttpPost("Add")]
         public async Task<IActionResult> AddToCart([FromBody] CartItemDto cartItem)
         {
             if (cartItem == null)
                 return BadRequest("Invalid data");
 
-            // ✅ Extract logged-in user ID (buyer) from JWT token
-            var guidClaim = User.Claims.FirstOrDefault(c => Guid.TryParse(c.Value, out _))?.Value;
-            if (string.IsNullOrEmpty(guidClaim))
-                return BadRequest("No valid User ID found in token");
+            // 1️⃣ Get buyer ID from JWT
+            var userIdClaim = User.Claims.FirstOrDefault(c => Guid.TryParse(c.Value, out _))?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return BadRequest("No valid user ID found in token.");
 
-            Guid buyerId = Guid.Parse(guidClaim);
+            Guid buyerId = Guid.Parse(userIdClaim);
 
-            // ✅ Get product info (and which admin uploaded it)
+            // 2️⃣ Fetch product
             var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == cartItem.ProductId);
             if (product == null)
-                return NotFound("Product not found");
+                return NotFound("Product not found.");
 
-            // ✅ Check if already exists in cart (to update quantity)
+            // 3️⃣ Check if product already exists in cart
             var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(c => c.UsersofuserportalID == buyerId && c.ProductId == product.ProductId);
+                .FirstOrDefaultAsync(c => c.Appuserid == buyerId && c.ProductId == product.ProductId);
 
             if (existingItem != null)
             {
                 existingItem.Quantity += cartItem.Quantity;
                 await _context.SaveChangesAsync();
-                return Ok(new { message = "Cart updated successfully!" });
+                return Ok(new { message = "🛒 Product quantity updated!" });
             }
 
-            // ✅ Create new cart item
-            var newItem = new CartItem
+            // 4️⃣ Create new cart item
+            var newCartItem = new CartItem
             {
                 CartItemID = Guid.NewGuid(),
-                UsersofuserportalID = buyerId,  // 👈 logged-in user
-                usersid = product.usersid,      // 👈 admin (from product)
+                Appuserid = buyerId,          // ✅ Buyer
+                usersid = product.usersid,    // ✅ Seller
                 ProductId = product.ProductId,
-                ProductName = product.Name,
-                ProductDescription = product.Description,
-                ProductPrice = product.Price,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
                 Quantity = cartItem.Quantity,
-                ProductImageUrl = product.ImageUrl,
+                ImageUrl = product.ImageUrl,
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.CartItems.Add(newItem);
+            _context.CartItems.Add(newCartItem);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Item added to cart!" });
+            return Ok(new { message = "✅ Product added to cart successfully!" });
         }
+
 
         // ✅ Get cart items for currently logged-in user
 
@@ -79,6 +82,7 @@ namespace User.API.Controllers
             var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
             return Ok(claims);
         }
+
 
         [Authorize]
         [HttpGet("GetByUser")]
@@ -95,15 +99,15 @@ namespace User.API.Controllers
 
             // ✅ Filter cart items by logged-in user
             var cartItems = await _context.CartItems
-                .Where(c => c.UsersofuserportalID == usersofuserportalID)
+                .Where(c => c.Appuserid == usersofuserportalID)
                 .Select(c => new
                 {
                     c.CartItemID,
-                    c.ProductName,
-                    c.ProductDescription,
-                    c.ProductPrice,
+                    c.Name,
+                    c.Description,
+                    c.Price,
                     c.Quantity,
-                    c.ProductImageUrl
+                    c.ImageUrl
                 })
                 .ToListAsync();
 
@@ -112,6 +116,8 @@ namespace User.API.Controllers
 
             return Ok(cartItems);
         }
+
+
 
     }
 }

@@ -33,7 +33,6 @@ namespace User.API.Models
     }
     public class CartItemDto
     {
-        public Guid UsersofuserportalID { get; set; }
         public Guid ProductId { get; set; }
         public string ProductName { get; set; } = "";
         public string ProductDescription { get; set; } = "";
@@ -42,22 +41,26 @@ namespace User.API.Models
         public string ProductImageUrl { get; set; } = "";
     }
 
+
+
     // Entity
     public class CartItem
     {
         [JsonIgnore]
         public Guid CartItemID { get; set; }
-        public Guid UsersofuserportalID { get; set; }  // 👈 buyer (from token)
-        public Guid usersid { get; set; }               // 👈 seller (from Product)
-        public Guid ProductId { get; set; }             // 👈 FK to Product
 
-        public string ProductName { get; set; } = string.Empty;
-        public string? ProductDescription { get; set; }
-        public decimal ProductPrice { get; set; }
+        public Guid Appuserid { get; set; }   // ✅ Buyer (from JWT)
+        public Guid usersid { get; set; }     // ✅ Seller (from product)
+        public Guid ProductId { get; set; }   // ✅ FK to Product
+
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public decimal Price { get; set; }
         public int Quantity { get; set; }
-        public string? ProductImageUrl { get; set; }
+        public string? ImageUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
+
 
 }
 
