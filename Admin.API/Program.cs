@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
             .WithExposedHeaders("Authorization");
     });
 });
-
+ 
 // ✅ JWT Authentication Setup
 // ✅ JWT Authentication Setup
 var jwtSection = builder.Configuration.GetSection("Jwt");
