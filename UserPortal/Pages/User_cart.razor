@@ -22,11 +22,11 @@ else
         @foreach (var item in cartItems)
         {
             <div class="cart-card">
-                <img src="@GetFullImageUrl(item.ProductImageUrl)" alt="@item.ProductName" class="cart-image" />
+                <img src="@GetFullImageUrl(item.ImageUrl)" alt="@item.Name" class="cart-image" />
                 <div class="cart-details">
-                    <h4>@item.ProductName</h4>
-                    <p class="desc">@item.ProductDescription</p>
-                    <p><strong>Price:</strong> ₹@item.ProductPrice</p>
+                    <h4>@item.Name</h4>
+                    <p class="desc">@item.Description</p>
+                    <p><strong>Price:</strong> ₹@item.Price</p>
                     <p><strong>Quantity:</strong> @item.Quantity</p>
                 </div>
             </div>
@@ -113,7 +113,7 @@ else
 
             if (string.IsNullOrEmpty(token))
             {
-                NavManager.NavigateTo("/login");
+                NavManager.NavigateTo("/");
                 return;
             }
 
@@ -135,7 +135,7 @@ else
                 {
                     // Invalid/expired token → remove & redirect
                     await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
-                    NavManager.NavigateTo("/login");
+                    NavManager.NavigateTo("/");
                 }
                 else
                 {
@@ -162,11 +162,11 @@ else
     public class CartItem
     {
         public Guid CartItemID { get; set; }
-        public Guid UsersofuserportalID { get; set; }
-        public string ProductName { get; set; } = "";
-        public string ProductDescription { get; set; } = "";
-        public decimal ProductPrice { get; set; }
+        public Guid Appuserid { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Price { get; set; }
         public int Quantity { get; set; }
-        public string ProductImageUrl { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
     }
 }
