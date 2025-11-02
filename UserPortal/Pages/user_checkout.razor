@@ -1,0 +1,271 @@
+﻿@page "/user_checkout"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<h3 style="text-align:center; color:#222;">🧾 Checkout</h3>
+
+@if (isLoading)
+{
+    <div style="text-align:center; margin-top:50px;">
+        <p>Loading cart...</p>
+        <div class="spinner"></div>
+    </div>
+}
+else if (!cartItems.Any())
+{
+    <p style="text-align:center; margin-top:50px;">Your cart is empty.</p>
+}
+else
+{
+    <div class="checkout-container">
+        <div class="cart-summary">
+            <h4>🛒 Items in your cart</h4>
+            @foreach (var item in cartItems)
+            {
+                <div class="cart-item">
+                    <img src="@GetFullImageUrl(item.ImageUrl)" class="cart-img" />
+                    <div class="cart-info">
+                        <strong>@item.Name</strong>
+                        <p>₹@item.Price x @item.Quantity</p>
+                    </div>
+                </div>
+            }
+
+            <hr />
+            <h4>Total: ₹@totalAmount</h4>
+        </div>
+
+        <div class="address-form">
+            <h4>📦 Shipping Address</h4>
+
+            <input placeholder="Full Name" @bind="address.FullName" />
+            <input placeholder="Address Line 1" @bind="address.Line1" />
+            <input placeholder="City" @bind="address.City" />
+            <input placeholder="Postal Code" @bind="address.PostalCode" />
+            <input placeholder="Phone" @bind="address.Phone" />
+
+            <button @onclick="PlaceOrder" class="btn-place">Place Order</button>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div style="text-align:center; margin-top:20px;">
+        <p>@message</p>
+    </div>
+}
+
+<style>
+    .checkout-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .cart-summary, .address-form {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .cart-img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 10px;
+    }
+
+    .cart-info p {
+        margin: 0;
+        font-size: 14px;
+        color: #555;
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .btn-place {
+        width: 100%;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+        .btn-place:hover {
+            background-color: #0056b3;
+        }
+
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #333;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: 20px auto;
+        animation: spin 1s linear infinite;
+    }
+
+   
+</style>
+
+@code {
+    private List<CartItem> cartItems = new();
+    private bool isLoading = true;
+    private string message = "";
+    private decimal totalAmount = 0;
+    private OrderAddress address = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCart();
+    }
+
+    private async Task LoadCart()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7117/api/Cart/GetByUser");
+            if (response.IsSuccessStatusCode)
+            {
+                cartItems = await response.Content.ReadFromJsonAsync<List<CartItem>>() ?? new List<CartItem>();
+                totalAmount = cartItems.Sum(x => x.Price * x.Quantity);
+            }
+            else
+            {
+                message = "❌ Error loading cart!";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"❌ Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task PlaceOrder()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // Construct order object
+            var orderObject = new
+            {
+                UsersId = Guid.Parse("00000000-0000-0000-0000-000000000001"), // Replace with seller ID
+                TotalAmount = totalAmount,
+                SubTotalAmount = totalAmount,
+                ShippingAmount = 0,
+                TaxAmount = 0,
+                PaymentStatus = "Pending",
+                OrderStatus = "New",
+                PaymentMethod = "COD",
+                OrderItems = cartItems.Select(c => new
+                {
+                    ProductId = c.CartItemID,
+                    UsersId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    ProductName = c.Name,
+                    Description = c.Description,
+                    ImageUrl = c.ImageUrl,
+                    UnitPrice = c.Price,
+                    Quantity = c.Quantity
+                }).ToList(),
+                OrderAddresses = new[]
+                {
+                    new {
+                        AddressType = "Shipping",
+                        address.FullName,
+                        address.Line1,
+                        address.City,
+                        address.PostalCode,
+                        Country = "India",
+                        address.Phone
+                    }
+                }
+            };
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7117/api/Orders/Create", orderObject);
+            if (response.IsSuccessStatusCode)
+            {
+                message = "✅ Order placed successfully!";
+                await JS.InvokeVoidAsync("alert", "Order placed successfully!");
+                NavManager.NavigateTo("/user_orders");
+            }
+            else
+            {
+                message = $"❌ Failed to place order. ({response.StatusCode})";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"❌ Error placing order: {ex.Message}";
+        }
+    }
+
+    private string GetFullImageUrl(string relativeUrl)
+    {
+        if (string.IsNullOrWhiteSpace(relativeUrl)) return "images/noimage.png";
+        return relativeUrl.StartsWith("http") ? relativeUrl : $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
+    }
+
+    // Models
+    public class CartItem
+    {
+        public Guid CartItemID { get; set; }
+        public Guid Appuserid { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+        public string ImageUrl { get; set; } = "";
+    }
+
+    public class OrderAddress
+    {
+        public string FullName { get; set; } = "";
+        public string Line1 { get; set; } = "";
+        public string City { get; set; } = "";
+        public string PostalCode { get; set; } = "";
+        public string Phone { get; set; } = "";
+    }
+}
