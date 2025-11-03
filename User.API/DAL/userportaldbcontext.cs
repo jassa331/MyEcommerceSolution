@@ -13,11 +13,27 @@ namespace User.API.DAL
         public DbSet<Product> Products { get; set; }
         public DbSet<RevokedToken> RevokedTokens { get; set; }
         public DbSet<UserLogin> Usersofuserportal { get; set; }
-        //public DbSet<Order> Orders { get; set; }
-        //public DbSet<OrderItem> OrderItems { get; set; }
-        //public DbSet<OrderAddress> OrderAddresses { get; set; }
-        //public DbSet<OrderPayment> OrderPayments { get; set; }
-        //public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<OrderAddress> OrderAddresses { get; set; }
+        public DbSet<OrderPayment> OrderPayments { get; set; }
+
+        public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderPayments)
+                .WithOne(p => p.Order)
+                .HasForeignKey(p => p.OrderId);
+
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderStatusHistory)
+                .WithOne(h => h.Order)
+                .HasForeignKey(h => h.OrderId);
+        }
+
 
     }
 }
