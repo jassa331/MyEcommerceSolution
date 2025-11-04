@@ -47,25 +47,119 @@ namespace User.Controllers
 
             return Ok(orders);
         }
-
-
-        // 🛒 POST: Create Order (from Cart)
         [HttpPost("Create")]
         public async Task<IActionResult> CreateOrder([FromBody] Order order)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            var userIdClaim = User.FindFirstValue("UserId");
+            if (string.IsNullOrEmpty(userIdClaim))
                 return Unauthorized("User ID missing in token.");
 
-            order.AppUserId = Guid.Parse(userId);
+            Guid userId = Guid.Parse(userIdClaim);
+
+            // ✅ Always create new OrderId before adding to context
+            order.OrderId = Guid.NewGuid();
+            order.AppUserId = userId;
             order.OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}";
             order.CreatedAt = DateTime.Now;
+
+            // ✅ Fix child relationships
+            if (order.OrderItems != null)
+            {
+                foreach (var item in order.OrderItems)
+                {
+                    item.OrderId = order.OrderId;
+                    item.AppUserId = order.AppUserId;
+                }
+            }
+
+            if (order.OrderAddresses != null)
+            {
+                foreach (var address in order.OrderAddresses)
+                {
+                    address.OrderId = order.OrderId;
+                }
+            }
+
+            if (order.OrderPayments != null)
+            {
+                foreach (var pay in order.OrderPayments)
+                {
+                    pay.OrderId = order.OrderId;
+                }
+            }
+
+            if (order.OrderStatusHistory != null)
+            {
+                foreach (var history in order.OrderStatusHistory)
+                {
+                    history.OrderId = order.OrderId;
+                }
+            }
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Order placed successfully!", orderId = order.OrderId });
         }
+
+        //[HttpPost("Create")]
+        //public async Task<IActionResult> Create([FromBody] Order order)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    if (order.OrderItems == null || !order.OrderItems.Any())
+        //    {
+        //        return BadRequest("Order must contain items.");
+        //    }
+
+        //    _context.Orders.Add(order);
+        //    await _context.SaveChangesAsync();
+        //    return Ok(new { Message = "Order created successfully", OrderId = order.OrderId });
+        //}
+
+
+        // 🛒 POST: Create Order (from Cart)
+        //[HttpPost("Create")]
+        //public async Task<IActionResult> CreateOrder([FromBody] Order order)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized("User ID missing in token.");
+
+        //    order.AppUserId = Guid.Parse(userId);
+        //    order.OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}";
+        //    order.CreatedAt = DateTime.Now;
+
+        //    _context.Orders.Add(order);
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok(new { message = "Order placed successfully!", orderId = order.OrderId });
+        //}
+        //[HttpPost("Create")]
+        //public async Task<IActionResult> CreateOrder([FromBody] Order order)
+        //{
+        //    // ✅ Extract UserId claim (not ClaimTypes.NameIdentifier)
+        //    var userIdClaim = User.FindFirstValue("UserId");
+        //    if (string.IsNullOrEmpty(userIdClaim))
+        //        return Unauthorized("User ID missing in token.");
+
+        //    Guid userId = Guid.Parse(userIdClaim);
+
+        //    order.AppUserId = userId;
+        //    order.OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}";
+        //    order.CreatedAt = DateTime.Now;
+
+        //    _context.Orders.Add(order);
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok(new { message = "Order placed successfully!", orderId = order.OrderId });
+        //}
+
+
+
 
         // 📦 GET: Order by Id
         [HttpGet("{orderId}")]
