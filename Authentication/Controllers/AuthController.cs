@@ -68,13 +68,23 @@ namespace Authentication.Controllers
         private string GenerateJwtToken(Userr user)
         {
             var claims = new List<Claim>
-    {
-        new Claim("UserId", user.Id.ToString()),
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-        new Claim("IsAdmin", user.IsAdmin ? "True" : "False"),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // ✅ important
+            new Claim("UserId", user.Id.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim("IsAdmin", user.IsAdmin ? "True" : "False"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+            //        var claims = new List<Claim>
+            //{
+            //    new Claim("UserId", user.Id.ToString()),
+            //    new Claim(ClaimTypes.Email, user.Email),
+            //    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            //    new Claim("IsAdmin", user.IsAdmin ? "True" : "False"),
+            //    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            //};
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

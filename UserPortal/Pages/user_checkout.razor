@@ -125,7 +125,7 @@ else
         animation: spin 1s linear infinite;
     }
 
-   
+    
 </style>
 
 @code {
@@ -189,10 +189,14 @@ else
             Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            // Construct order object
-            var orderObject = new
+            if (cartItems == null || !cartItems.Any())
             {
-                UsersId = Guid.Parse("00000000-0000-0000-0000-000000000001"), // Replace with seller ID
+                await JS.InvokeVoidAsync("alert", "Your cart is empty!");
+                return;
+            }
+
+            var orderObject = new CreateOrderDto
+            {
                 TotalAmount = totalAmount,
                 SubTotalAmount = totalAmount,
                 ShippingAmount = 0,
@@ -200,31 +204,37 @@ else
                 PaymentStatus = "Pending",
                 OrderStatus = "New",
                 PaymentMethod = "COD",
-                OrderItems = cartItems.Select(c => new
+                IsActive = true,
+                IsDeleted = false,
+                OrderItems = cartItems.Select(c => new OrderItemDto
                 {
-                    ProductId = c.CartItemID,
-                    UsersId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    ProductId = c.ProductId,
                     ProductName = c.Name,
                     Description = c.Description,
                     ImageUrl = c.ImageUrl,
                     UnitPrice = c.Price,
                     Quantity = c.Quantity
                 }).ToList(),
-                OrderAddresses = new[]
+                OrderAddresses = new List<OrderAddressDto>
                 {
-                    new {
-                        AddressType = "Shipping",
-                        address.FullName,
-                        address.Line1,
-                        address.City,
-                        address.PostalCode,
-                        Country = "India",
-                        address.Phone
+                    new OrderAddressDto
+                    {
+                        FullName = address.FullName,
+                        Line1 = address.Line1,
+                        City = address.City,
+                        PostalCode = address.PostalCode,
+                        Phone = address.Phone
                     }
                 }
             };
 
-            var response = await Http.PostAsJsonAsync("https://localhost:7117/api/Orders/Create", orderObject);
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null // 👈 ensure backend PascalCase match
+            };
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7117/api/Orders/Create", orderObject, jsonOptions);
+
             if (response.IsSuccessStatusCode)
             {
                 message = "✅ Order placed successfully!";
@@ -233,7 +243,8 @@ else
             }
             else
             {
-                message = $"❌ Failed to place order. ({response.StatusCode})";
+                var err = await response.Content.ReadAsStringAsync();
+                message = $"❌ Failed to place order. ({response.StatusCode})\n{err}";
             }
         }
         catch (Exception ex)
@@ -244,14 +255,19 @@ else
 
     private string GetFullImageUrl(string relativeUrl)
     {
-        if (string.IsNullOrWhiteSpace(relativeUrl)) return "images/noimage.png";
-        return relativeUrl.StartsWith("http") ? relativeUrl : $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
+        if (string.IsNullOrWhiteSpace(relativeUrl))
+            return "images/noimage.png";
+
+        return relativeUrl.StartsWith("http")
+            ? relativeUrl
+            : $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
     }
 
-    // Models
+    // ------------------ MODELS ------------------
     public class CartItem
     {
         public Guid CartItemID { get; set; }
+        public Guid ProductId { get; set; }
         public Guid Appuserid { get; set; }
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
@@ -266,6 +282,42 @@ else
         public string Line1 { get; set; } = "";
         public string City { get; set; } = "";
         public string PostalCode { get; set; } = "";
+        public string Phone { get; set; } = "";
+    }
+
+    public class CreateOrderDto
+    {
+        public decimal TotalAmount { get; set; }
+        public decimal SubTotalAmount { get; set; }
+        public decimal ShippingAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public string PaymentStatus { get; set; } = "Pending";
+        public string OrderStatus { get; set; } = "New";
+        public string PaymentMethod { get; set; } = "COD";
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
+        public List<OrderItemDto> OrderItems { get; set; } = new();
+        public List<OrderAddressDto> OrderAddresses { get; set; } = new();
+    }
+
+    public class OrderItemDto
+    {
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public class OrderAddressDto
+    {
+        public string AddressType { get; set; } = "Shipping";
+        public string FullName { get; set; } = "";
+        public string Line1 { get; set; } = "";
+        public string City { get; set; } = "";
+        public string PostalCode { get; set; } = "";
+        public string Country { get; set; } = "India";
         public string Phone { get; set; } = "";
     }
 }
