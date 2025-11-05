@@ -62,6 +62,8 @@ namespace User.API.Models
     //    public string Phone { get; set; } = string.Empty;
     //}
     public class CreateOrderRequest
+
+
     {
         public Guid CartItemId { get; set; }
         public string? PaymentMethod { get; set; }
