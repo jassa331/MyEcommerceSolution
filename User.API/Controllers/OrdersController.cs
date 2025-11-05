@@ -21,34 +21,10 @@ namespace User.Controllers
             _context = context;
         }
 
+
         // 🧾 GET: Get All Orders by Logged-in User
-        [HttpGet("MyOrders")]
-        public async Task<IActionResult> GetMyOrders()
-        {
-            // Try to find the "UserId" claim from your JWT token
-            var userIdClaim = User.FindFirst("UserId")?.Value;
-
-            // Fallback: if token uses "sub" or "nameidentifier"
-            if (string.IsNullOrEmpty(userIdClaim))
-                userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // Validate GUID
-            if (!Guid.TryParse(userIdClaim, out Guid uid))
-                return Unauthorized("Invalid or missing UserId in token.");
-
-            // Fetch orders for this user
-            var orders = await _context.Orders
-                .Include(o => o.OrderItems)
-                .Include(o => o.OrderAddresses)
-                .Include(o => o.OrderPayments)
-                .Where(o => o.AppUserId == uid && !o.IsDeleted)
-                .OrderByDescending(o => o.CreatedAt)
-                .ToListAsync();
-
-            return Ok(orders);
-        }
         [HttpPost("Create")]
-        public async Task<IActionResult> CreateOrder([FromBody] Order order)
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
         {
             var userIdClaim = User.FindFirstValue("UserId");
             if (string.IsNullOrEmpty(userIdClaim))
@@ -56,51 +32,171 @@ namespace User.Controllers
 
             Guid userId = Guid.Parse(userIdClaim);
 
-            // ✅ Always create new OrderId before adding to context
-            order.OrderId = Guid.NewGuid();
-            order.AppUserId = userId;
-            order.OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}";
-            order.CreatedAt = DateTime.Now;
+            // 🛒 Fetch Cart Item
+            var cartItem = await _context.CartItems
+                .FirstOrDefaultAsync(c => c.CartItemID == request.CartItemId && c.Appuserid == userId);
 
-            // ✅ Fix child relationships
-            if (order.OrderItems != null)
+            if (cartItem == null)
+                return BadRequest("Invalid or missing cart item.");
+
+            // 🧾 Calculate totals
+            decimal subTotal = cartItem.Price * cartItem.Quantity;
+            decimal total = subTotal + request.ShippingAmount + request.TaxAmount;
+
+            // 🧾 Create Main Order
+            var order = new Order
             {
-                foreach (var item in order.OrderItems)
-                {
-                    item.OrderId = order.OrderId;
-                    item.AppUserId = order.AppUserId;
-                }
-            }
+                OrderId = Guid.NewGuid(),
+                OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}",
+                AppUserId = userId,           // Buyer
+                UsersId = cartItem.usersid,   // Seller/Admin
+                ProductId = cartItem.ProductId,
+                CartItemId = cartItem.CartItemID,
+                SubTotalAmount = subTotal,
+                ShippingAmount = request.ShippingAmount,
+                TaxAmount = request.TaxAmount,
+                TotalAmount = total,
+                PaymentMethod = request.PaymentMethod ?? "COD",
+                PaymentStatus = "Pending",
+                OrderStatus = "New",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAt = DateTime.Now,
+            };
 
-            if (order.OrderAddresses != null)
+            // 🧩 Add Order Item (from Cart)
+            order.OrderItems = new List<OrderItem>
+        {
+            new OrderItem
             {
-                foreach (var address in order.OrderAddresses)
-                {
-                    address.OrderId = order.OrderId;
-                }
+                OrderId = order.OrderId,
+                ProductId = cartItem.ProductId,
+                UsersId = cartItem.usersid,
+                AppUserId = userId,
+                ProductName = cartItem.Name,
+                Description = cartItem.Description,
+                ImageUrl = cartItem.ImageUrl,
+                UnitPrice = cartItem.Price,
+                Quantity = cartItem.Quantity
             }
+        };
 
-            if (order.OrderPayments != null)
+            // 🏠 Add Address (from UI)
+            order.OrderAddresses = new List<OrderAddress>
+        {
+            new OrderAddress
             {
-                foreach (var pay in order.OrderPayments)
-                {
-                    pay.OrderId = order.OrderId;
-                }
+                OrderId = order.OrderId,
+                FullName = request.FullName,
+                Line1 = request.Line1,
+                Line2 = request.Line2,
+                City = request.City,
+                State = request.State,
+                PostalCode = request.PostalCode,
+                Country = request.Country,
+                Phone = request.Phone
             }
+        };
 
-            if (order.OrderStatusHistory != null)
+            // 💳 Add Payment Info
+            order.OrderPayments = new List<OrderPayment>
+        {
+            new OrderPayment
             {
-                foreach (var history in order.OrderStatusHistory)
-                {
-                    history.OrderId = order.OrderId;
-                }
+                OrderId = order.OrderId,
+                PaymentProvider = request.PaymentMethod ?? "COD",
+                Amount = total,
+                Status = "Pending"
             }
+        };
 
+            // 📜 Add Status History
+            order.OrderStatusHistory = new List<OrderStatusHistory>
+        {
+            new OrderStatusHistory
+            {
+                OrderId = order.OrderId,
+                FromStatus = "New",
+                ToStatus = "Pending",
+                Note = "Order placed successfully"
+            }
+        };
+
+
+            // 💾 Save All
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Order placed successfully!", orderId = order.OrderId });
+            // 🗑️ Optional: Remove item from cart
+            //   _context.CartItems.Remove(cartItem);
+            // await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Order placed successfully!",
+                orderId = order.OrderId,
+                total = order.TotalAmount
+            });
         }
+
+
+
+
+        //[Authorize]
+        //[HttpPost("Create")]
+        //public async Task<IActionResult> CreateOrder([FromBody] Order order)
+        //{
+        //    var userIdClaim = User.FindFirstValue("UserId");
+        //    if (string.IsNullOrEmpty(userIdClaim))
+        //        return Unauthorized("User ID missing in token.");
+
+        //    Guid userId = Guid.Parse(userIdClaim);
+
+        //    // ✅ Always create new OrderId before adding to context
+        //    order.OrderId = Guid.NewGuid();
+        //    order.AppUserId = userId;
+        //    order.OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}";
+        //    order.CreatedAt = DateTime.Now;
+
+        //    // ✅ Fix child relationships
+        //    if (order.OrderItems != null)
+        //    {
+        //        foreach (var item in order.OrderItems)
+        //        {
+        //            item.OrderId = order.OrderId;
+        //            item.AppUserId = order.AppUserId;
+        //        }
+        //    }
+
+        //    if (order.OrderAddresses != null)
+        //    {
+        //        foreach (var address in order.OrderAddresses)
+        //        {
+        //            address.OrderId = order.OrderId;
+        //        }
+        //    }
+
+        //    if (order.OrderPayments != null)
+        //    {
+        //        foreach (var pay in order.OrderPayments)
+        //        {
+        //            pay.OrderId = order.OrderId;
+        //        }
+        //    }
+
+        //    if (order.OrderStatusHistory != null)
+        //    {
+        //        foreach (var history in order.OrderStatusHistory)
+        //        {
+        //            history.OrderId = order.OrderId;
+        //        }
+        //    }
+
+        //    _context.Orders.Add(order);
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok(new { message = "Order placed successfully!", orderId = order.OrderId });
+        //}
 
         //[HttpPost("Create")]
         //public async Task<IActionResult> Create([FromBody] Order order)

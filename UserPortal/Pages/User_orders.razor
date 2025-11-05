@@ -1,0 +1,233 @@
+﻿@page "/user_orders"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<h3 style="text-align:center; color:#222;">📦 My Orders</h3>
+
+@if (isLoading)
+{
+    <div style="text-align:center; margin-top:50px;">
+        <p>Loading your orders...</p>
+        <div class="spinner"></div>
+    </div>
+}
+else if (orders == null || !orders.Any())
+{
+    <p style="text-align:center; margin-top:50px;">You haven't placed any orders yet.</p>
+}
+else
+{
+    <div class="orders-container">
+        @foreach (var order in orders)
+        {
+            <div class="order-card">
+                <div class="order-header">
+                    <strong>Order #: @order.OrderNumber</strong>
+                    <span class="order-status @(order.OrderStatus.ToLower())">@order.OrderStatus</span>
+                </div>
+
+                <p><strong>Placed on:</strong> @order.CreatedAt.ToString("dd MMM yyyy")</p>
+                <p><strong>Total:</strong> ₹@order.TotalAmount</p>
+                <p><strong>Payment:</strong> @order.PaymentMethod (@order.PaymentStatus)</p>
+
+                <button class="btn-view" @onclick="() => ToggleDetails(order.OrderId)">
+                    @(expandedOrders.Contains(order.OrderId) ? "Hide Items" : "View Items")
+                </button>
+
+                @if (expandedOrders.Contains(order.OrderId))
+                {
+                    <div class="order-items">
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <div class="item-row">
+                                <img src="@GetFullImageUrl(item.ImageUrl)" class="item-img" />
+                                <div>
+                                    <strong>@item.ProductName</strong>
+                                    <p>₹@item.UnitPrice x @item.Quantity</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .orders-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .order-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+
+        .order-card:hover {
+            transform: translateY(-3px);
+        }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #fff;
+    }
+
+        .order-status.new {
+            background-color: #007bff;
+        }
+
+        .order-status.pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .order-status.completed {
+            background-color: #28a745;
+        }
+
+        .order-status.cancelled {
+            background-color: #dc3545;
+        }
+
+    .btn-view {
+        margin-top: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        .btn-view:hover {
+            background: #0056b3;
+        }
+
+    .order-items {
+        margin-top: 10px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .item-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #333;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: 20px auto;
+        animation: spin 1s linear infinite;
+    }
+
+    
+</style>
+
+@code {
+    private bool isLoading = true;
+    private List<OrderDto> orders = new();
+    private HashSet<Guid> expandedOrders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+    }
+
+    private async Task LoadOrders()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7117/api/Orders/GetByUser");
+            if (response.IsSuccessStatusCode)
+            {
+                orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>() ?? new();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error loading orders: " + ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ToggleDetails(Guid orderId)
+    {
+        if (expandedOrders.Contains(orderId))
+            expandedOrders.Remove(orderId);
+        else
+            expandedOrders.Add(orderId);
+    }
+
+    private string GetFullImageUrl(string relativeUrl)
+    {
+        if (string.IsNullOrWhiteSpace(relativeUrl))
+            return "images/noimage.png";
+
+        return relativeUrl.StartsWith("http")
+            ? relativeUrl
+            : $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
+    }
+
+    // DTO classes
+    public class OrderDto
+    {
+        public Guid OrderId { get; set; }
+        public string OrderNumber { get; set; } = "";
+        public decimal TotalAmount { get; set; }
+        public string PaymentStatus { get; set; } = "";
+        public string OrderStatus { get; set; } = "";
+        public string PaymentMethod { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+        public List<OrderItemDto> OrderItems { get; set; } = new();
+    }
+
+    public class OrderItemDto
+    {
+        public string ProductName { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+    }
+}
