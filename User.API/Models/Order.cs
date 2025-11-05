@@ -17,7 +17,9 @@ namespace User.API.Models
         [JsonIgnore]
         public Guid AppUserId { get; set; }        // Buyer
         [JsonIgnore]
-        public Guid UsersId { get; set; }          // Seller
+        public Guid UsersId { get; set; }
+        public Guid ProductId { get; set; }   // ✅ from CartItem
+        public Guid CartItemId { get; set; } // Seller
         public decimal TotalAmount { get; set; }
         public decimal SubTotalAmount { get; set; }
         public decimal ShippingAmount { get; set; }
@@ -38,6 +40,42 @@ namespace User.API.Models
 
 
         public ICollection<OrderStatusHistory>? OrderStatusHistory { get; set; }
+    }
+    //public class CreateOrderRequest
+    //{
+    //    // 🛒 Cart Info
+    //    public Guid CartItemId { get; set; }
+
+    //    // 💰 Payment Info
+    //    public string? PaymentMethod { get; set; }
+    //    public decimal ShippingAmount { get; set; }
+    //    public decimal TaxAmount { get; set; }
+
+    //    // 🏠 Address Info (from UI)
+    //    public string FullName { get; set; } = string.Empty;
+    //    public string Line1 { get; set; } = string.Empty;
+    //    public string? Line2 { get; set; }
+    //    public string City { get; set; } = string.Empty;
+    //    public string State { get; set; } = string.Empty;
+    //    public string PostalCode { get; set; } = string.Empty;
+    //    public string Country { get; set; } = "India";
+    //    public string Phone { get; set; } = string.Empty;
+    //}
+    public class CreateOrderRequest
+    {
+        public Guid CartItemId { get; set; }
+        public string? PaymentMethod { get; set; }
+        public decimal ShippingAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+
+        public string FullName { get; set; } = string.Empty;
+        public string Line1 { get; set; } = string.Empty;
+        public string? Line2 { get; set; }
+        public string City { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string PostalCode { get; set; } = string.Empty;
+        public string Country { get; set; } = "India";
+        public string Phone { get; set; } = string.Empty;
     }
 
     public class OrderItem
