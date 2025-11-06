@@ -28,6 +28,23 @@ else
                     <p class="desc">@item.Description</p>
                     <p><strong>Price:</strong> ₹@item.Price</p>
                     <p><strong>Quantity:</strong> @item.Quantity</p>
+                    <a href="user_checkout" style="display: inline-block;
+                                                   padding: 10px 20px;
+                                                   background-color: #000;
+                                                   color: #fff;
+                                                   text-decoration: none;
+                                                   border-radius: 5px;
+                                                   text-align: center;
+                                                   font-weight: bold;
+                                                   ">Order Now</a>
+                    <button @onclick="async () => await DeleteItem(item.CartItemID)"
+                            disabled="@deletingItems.Contains(item.CartItemID)"
+                            style="background-color: #ff4d4f; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+                        🗑️ Delete
+                    </button>
+
+
+
                 </div>
             </div>
         }
@@ -104,6 +121,40 @@ else
 @code {
     private List<CartItem> cartItems = new();
     private bool isLoading = true;
+    private HashSet<Guid> deletingItems = new();
+
+    private async Task DeleteItem(Guid cartItemId)
+    {
+        if (deletingItems.Contains(cartItemId))
+            return;
+
+        deletingItems.Add(cartItemId);
+
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            NavManager.NavigateTo("/");
+            return;
+        }
+
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await Http.DeleteAsync($"https://localhost:7117/api/Cart/Delete/{cartItemId}");
+        if (response.IsSuccessStatusCode)
+        {
+            cartItems = cartItems.Where(c => c.CartItemID != cartItemId).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            var err = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"❌ Delete failed: {err}");
+        }
+
+        deletingItems.Remove(cartItemId);
+    }
+
 
     protected override async Task OnInitializedAsync()
     {

@@ -116,6 +116,29 @@ namespace User.API.Controllers
 
             return Ok(cartItems);
         }
+        [Authorize]
+        [HttpDelete("Delete/{cartItemId}")]
+        public async Task<IActionResult> DeleteCartItem(Guid cartItemId)
+        {
+            // ✅ Get logged-in user ID from JWT
+            var userIdClaim = User.Claims.FirstOrDefault(c => Guid.TryParse(c.Value, out _))?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return BadRequest("No valid user ID found in token.");
+
+            Guid buyerId = Guid.Parse(userIdClaim);
+
+            // ✅ Find the cart item
+            var cartItem = await _context.CartItems
+                .FirstOrDefaultAsync(c => c.CartItemID == cartItemId && c.Appuserid == buyerId);
+
+            if (cartItem == null)
+                return NotFound("Cart item not found or does not belong to you.");
+
+            _context.CartItems.Remove(cartItem);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "🗑️ Cart item deleted successfully!" });
+        }
 
 
 
