@@ -61,7 +61,11 @@ namespace User.API.Models
     //    public string Country { get; set; } = "India";
     //    public string Phone { get; set; } = string.Empty;
     //}
+   // /// <summ
+   // /// </summary>
     public class CreateOrderRequest
+
+
     {
         public Guid CartItemId { get; set; }
         public string? PaymentMethod { get; set; }
