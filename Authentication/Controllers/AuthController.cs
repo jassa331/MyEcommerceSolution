@@ -25,20 +25,28 @@ namespace Authentication.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            if (await _context.Userr.AnyAsync(u => u.Email == dto.Email))
-                return BadRequest("Email already exists.");
-
-            var user = new Userr
+            try
             {
-                Email = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                IsAdmin = dto.IsAdmin
-            };
+                if (await _context.Userr.AnyAsync(u => u.Email == dto.Email))
+                    return BadRequest("Email already exists.");
 
-            _context.Userr.Add(user);
-            await _context.SaveChangesAsync();
+                var user = new Userr
+                {
+                    Email = dto.Email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    IsAdmin = dto.IsAdmin
+                };
 
+                _context.Userr.Add(user);
+                await _context.SaveChangesAsync();
+           
             return Ok("Registered successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Return 500 with the exception message
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost("login")]
