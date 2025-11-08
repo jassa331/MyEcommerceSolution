@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using User.API.DAL;
 using User.API.Models;
 
@@ -118,7 +120,7 @@ namespace User.Controllers
                 OrderId = order.OrderId,
                 FromStatus = "New",
                 ToStatus = "Pending",
-                Note = "Order placed successfully"
+                Note = "Ordersuccessfully"
             }
         };
 
@@ -257,20 +259,103 @@ namespace User.Controllers
 
 
 
-        // 📦 GET: Order by Id
-        [HttpGet("{orderId}")]
-        public async Task<IActionResult> GetOrderById(Guid orderId)
+        //// 📦 GET: Order by Id
+        //[HttpGet("{orderId}")]
+        //public async Task<IActionResult> GetOrderById(Guid orderId)
+        //{
+        //    var order = await _context.Orders
+        //        .Include(o => o.OrderItems)
+        //        .Include(o => o.OrderAddresses)
+        //        .Include(o => o.OrderPayments)
+        //        .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        //    if (order == null)
+        //        return NotFound("Order not found");
+
+        //    return Ok(order);
+        //}
+ 
+[HttpGet("{orderId}")]
+    public async Task<IActionResult> GetOrderById(Guid orderId)
+    {
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .Include(o => o.OrderAddresses)
+            .Include(o => o.OrderPayments)
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        if (order == null)
+            return NotFound("Order not found");
+
+        var jsonOptions = new JsonSerializerOptions
         {
-            var order = await _context.Orders
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            WriteIndented = true
+        };
+
+        return new JsonResult(order, jsonOptions);
+    }
+
+        [HttpGet("GetByUserr")]
+        public async Task<IActionResult> GetOrdersByUser()
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+
+            if (userId == null)
+                return Unauthorized("User not logged in");
+
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Where(o => o.AppUserId == Guid.Parse(userId) && o.IsDeleted == false)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return Ok(orders);
+        }
+        //[HttpGet("ByUser/{userId}")]
+        //public async Task<IActionResult> GetOrdersByUser(Guid appUserId)
+        //{
+        //    var orders = await _context.Orders
+        //        .Include(o => o.OrderItems)
+        //        .Include(o => o.OrderAddresses)
+        //        .Include(o => o.OrderPayments)
+        //        .Where(o => o.AppUserId == appUserId && o.IsDeleted == false)
+        //        .OrderByDescending(o => o.CreatedAt)
+        //        .ToListAsync();
+
+        //    if (orders == null || orders.Count == 0)
+        //        return NotFound("No orders found for this user.");
+
+        //    var jsonOptions = new JsonSerializerOptions
+        //    {
+        //        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        //        WriteIndented = true
+        //    };
+
+        //    return new JsonResult(orders, jsonOptions);
+        //}
+        [HttpGet("ByUser/{userId}")]
+        public async Task<IActionResult> GetOrdersByUser(Guid userId)
+        {
+            var orders = await _context.Orders
                 .Include(o => o.OrderItems)
                 .Include(o => o.OrderAddresses)
                 .Include(o => o.OrderPayments)
-                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+                .Where(o => o.AppUserId == userId && o.IsDeleted == false)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
 
-            if (order == null)
-                return NotFound("Order not found");
+            if (orders == null || orders.Count == 0)
+                return NotFound("No orders found for this user.");
 
-            return Ok(order);
+            var jsonOptions = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                WriteIndented = true
+            };
+
+            return new JsonResult(orders, jsonOptions);
         }
+
     }
 }
