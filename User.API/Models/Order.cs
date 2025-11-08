@@ -87,12 +87,12 @@ namespace User.API.Models
         [JsonIgnore]
         public Guid OrderItemId { get; set; } = Guid.NewGuid();
         [JsonIgnore]
-        public Guid OrderId { get; set; }
+        public Guid? OrderId { get; set; }
         public Guid ProductId { get; set; }
         [JsonIgnore]
-        public Guid UsersId { get; set; }
+        public Guid? UsersId { get; set; }
         [JsonIgnore]
-        public Guid AppUserId { get; set; }
+        public Guid? AppUserId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
