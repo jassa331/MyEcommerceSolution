@@ -148,8 +148,6 @@ else
         margin: 20px auto;
         animation: spin 1s linear infinite;
     }
-
-    
 </style>
 
 @code {
@@ -167,7 +165,9 @@ else
         try
         {
             var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
-            if (string.IsNullOrEmpty(token))
+            var userId = await JS.InvokeAsync<string>("localStorage.getItem", "userId");
+
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
             {
                 NavManager.NavigateTo("/");
                 return;
@@ -176,7 +176,7 @@ else
             Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await Http.GetAsync("https://localhost:7117/api/Orders/GetByUser");
+            var response = await Http.GetAsync($"https://localhost:7117/api/Orders/ByUser/{userId}");
             if (response.IsSuccessStatusCode)
             {
                 orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>() ?? new();
@@ -210,7 +210,7 @@ else
             : $"https://localhost:7117/{relativeUrl.TrimStart('/')}";
     }
 
-    // DTO classes
+    // DTOs
     public class OrderDto
     {
         public Guid OrderId { get; set; }
