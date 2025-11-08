@@ -104,6 +104,7 @@ namespace User.API.Models
         [JsonIgnore]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [JsonIgnore]
         public Order? Order { get; set; }
     }
     public class OrderAddress
@@ -124,6 +125,7 @@ namespace User.API.Models
         [JsonIgnore]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [JsonIgnore]
         public Order? Order { get; set; }
     }
 
@@ -148,6 +150,7 @@ public class OrderPayment
         [JsonIgnore]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [JsonIgnore]
         public Order? Order { get; set; }
     }
 
@@ -168,6 +171,7 @@ public class OrderPayment
         [JsonIgnore]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [JsonIgnore]
         public Order? Order { get; set; }
     }
 
