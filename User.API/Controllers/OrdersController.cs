@@ -274,27 +274,27 @@ namespace User.Controllers
 
         //    return Ok(order);
         //}
- 
-[HttpGet("{orderId}")]
-    public async Task<IActionResult> GetOrderById(Guid orderId)
-    {
-        var order = await _context.Orders
-            .Include(o => o.OrderItems)
-            .Include(o => o.OrderAddresses)
-            .Include(o => o.OrderPayments)
-            .FirstOrDefaultAsync(o => o.OrderId == orderId);
 
-        if (order == null)
-            return NotFound("Order not found");
-
-        var jsonOptions = new JsonSerializerOptions
+        [HttpGet("{orderId}")]
+        public async Task<IActionResult> GetOrderById(Guid orderId)
         {
-            ReferenceHandler = ReferenceHandler.IgnoreCycles,
-            WriteIndented = true
-        };
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Include(o => o.OrderAddresses)
+                .Include(o => o.OrderPayments)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
 
-        return new JsonResult(order, jsonOptions);
-    }
+            if (order == null)
+                return NotFound("Order not found");
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.IgnoreCycles,
+                WriteIndented = true
+            };
+
+            return new JsonResult(order, jsonOptions);
+        }
 
         [HttpGet("GetByUserr")]
         public async Task<IActionResult> GetOrdersByUser()
@@ -334,27 +334,70 @@ namespace User.Controllers
 
         //    return new JsonResult(orders, jsonOptions);
         //}
+        //    [HttpGet("ByUser/{userId}")]
+        //    public async Task<IActionResult> GetOrdersByUser(Guid userId)
+        //    {
+        //        var orders = await _context.Orders
+        //            .Include(o => o.OrderItems)
+        //            .Include(o => o.OrderAddresses)
+        //            .Include(o => o.OrderPayments)
+        //            .Where(o => o.AppUserId == userId && o.IsDeleted == false)
+        //            .OrderByDescending(o => o.CreatedAt)
+        //            .ToListAsync();
+
+        //        if (orders == null || orders.Count == 0)
+        //            return NotFound("No orders found for this user.");
+
+        //        var jsonOptions = new JsonSerializerOptions
+        //        {
+        //            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        //            WriteIndented = true
+        //        };
+
+        //        return new JsonResult(orders, jsonOptions);
+        //    }
+
+        //}
+        // ✅ GET: api/Orders/ByUser/{userId}
         [HttpGet("ByUser/{userId}")]
         public async Task<IActionResult> GetOrdersByUser(Guid userId)
         {
-            var orders = await _context.Orders
-                .Include(o => o.OrderItems)
-                .Include(o => o.OrderAddresses)
-                .Include(o => o.OrderPayments)
-                .Where(o => o.AppUserId == userId && o.IsDeleted == false)
-                .OrderByDescending(o => o.CreatedAt)
-                .ToListAsync();
-
-            if (orders == null || orders.Count == 0)
-                return NotFound("No orders found for this user.");
-
-            var jsonOptions = new JsonSerializerOptions
+            try
             {
-                ReferenceHandler = ReferenceHandler.IgnoreCycles,
-                WriteIndented = true
-            };
+                var orders = await _context.Orders
+                    .Where(o => o.AppUserId == userId && o.IsDeleted == false)
+                    .Include(o => o.OrderItems)
+                    .Include(o => o.OrderAddresses)
+                    .Include(o => o.OrderPayments)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .Select(o => new
+                    {
+                        o.OrderId,
+                        o.OrderNumber,
+                        o.TotalAmount,
+                        o.PaymentMethod,
+                        o.PaymentStatus,
+                        o.OrderStatus,
+                        o.CreatedAt,
+                        OrderItems = o.OrderItems.Select(i => new
+                        {
+                            i.ProductName,
+                            i.ImageUrl,
+                            i.UnitPrice,
+                            i.Quantity
+                        })
+                    })
+                    .ToListAsync();
 
-            return new JsonResult(orders, jsonOptions);
+                if (orders == null || !orders.Any())
+                    return Ok(new List<object>());
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"❌ Error fetching orders: {ex.Message}");
+            }
         }
 
     }
