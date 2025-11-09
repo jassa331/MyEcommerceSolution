@@ -21,33 +21,132 @@ namespace Authentication.Controllers
             _context = context;
             _config = config;
         }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             try
             {
-                if (await _context.Userr.AnyAsync(u => u.Email == dto.Email))
-                    return BadRequest("Email already exists.");
+                // ✅ 1. Basic field validation
+                if (string.IsNullOrWhiteSpace(dto.Email) ||
+                    string.IsNullOrWhiteSpace(dto.Password) ||
+                    string.IsNullOrWhiteSpace(dto.ConfirmPassword))
+                {
+                    return BadRequest("Please fill all required fields.");
+                }
 
+                // ✅ 2. Password confirmation check
+                if (dto.Password != dto.ConfirmPassword)
+                {
+                    return BadRequest("Password and Confirm Password do not match.");
+                }
+
+                // ✅ 3. Email uniqueness check
+                if (await _context.Userr.AnyAsync(u => u.Email == dto.Email))
+                {
+                    return BadRequest("This email is already registered. Please use another one.");
+                }
+
+                // ✅ 4. Create and save user
                 var user = new Userr
                 {
-                    Email = dto.Email,
+                    Email = dto.Email.Trim(),
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    IsAdmin = dto.IsAdmin
+                    IsAdmin = dto.IsAdmin,
+                    UserName = dto.UserName?.Trim(),
+                    MobileNumber = dto.MobileNumber?.Trim()
                 };
 
                 _context.Userr.Add(user);
                 await _context.SaveChangesAsync();
-           
-            return Ok("Registered successfully.");
+
+                return Ok("Registered successfully!");
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // SQL or DB related errors
+                return StatusCode(500, "A database error occurred. Please enter valid data or try again.");
             }
             catch (Exception ex)
             {
-                // Return 500 with the exception message
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                // General unexpected errors
+                return StatusCode(500, $"Something went wrong. Please enter valid data. Error: {ex.Message}");
             }
         }
+
+
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register(RegisterDto dto)
+        //{
+        //    try
+        //    {
+        //        if (await _context.Userr.AnyAsync(u => u.Email == dto.Email))
+        //            return BadRequest("Email already exists.");
+
+        //        var user = new Userr
+        //        {
+        //            Email = dto.Email,
+        //            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+        //            IsAdmin = dto.IsAdmin
+        //        };
+
+        //        _context.Userr.Add(user);
+        //        await _context.SaveChangesAsync();
+
+        //    return Ok("Registered successfully.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Return 500 with the exception message
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
+        //}
+        //[HttpPost("reset-password")]
+        //public async Task<IActionResult> ResetPassword(string email, string token, string newPassword)
+        //{
+        //    var user = await _context.Userr.FirstOrDefaultAsync(u => u.Email == email && u.ResetToken == token);
+
+        //    if (user == null || user.TokenExpiry < DateTime.UtcNow)
+        //        return BadRequest("Invalid or expired reset token.");
+
+        //    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        //    user.ResetToken = null;
+        //    user.TokenExpiry = null;
+
+        //    await _context.SaveChangesAsync();
+        //    return Ok("Password reset successfully!");
+        //}
+        //[HttpPost("forgot-password")]
+        //public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        //{
+        //    try
+        //    {
+        //        // ✅ 1. Validate input
+        //        if (string.IsNullOrWhiteSpace(dto.Email))
+        //            return BadRequest("Email is required.");
+
+        //        // ✅ 2. Check if user exists
+        //        var user = await _context.Userr.FirstOrDefaultAsync(u => u.Email == dto.Email);
+        //        if (user == null)
+        //            return NotFound("No account found with this email.");
+
+        //        // ✅ 3. Generate a reset token (random GUID for simplicity)
+        //        var resetToken = Guid.NewGuid().ToString();
+
+        //        // ✅ 4. Save it to user table (add a new column if not exists)
+        //        user.ResetToken = resetToken;
+        //        user.TokenExpiry = DateTime.UtcNow.AddMinutes(15);
+        //        await _context.SaveChangesAsync();
+
+        //        // ✅ 5. Normally, you'd send email — for now, just return token
+        //        return Ok($"Your reset token is: {resetToken}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Something went wrong: {ex.Message}");
+        //    }
+        //}
+
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)

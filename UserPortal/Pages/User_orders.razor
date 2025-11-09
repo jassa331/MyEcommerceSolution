@@ -89,7 +89,7 @@ else
     }
 
         .order-status.new {
-            background-color: #007bff;
+            background-color: black;
         }
 
         .order-status.pending {
@@ -105,9 +105,13 @@ else
             background-color: #dc3545;
         }
 
+        .order-status.new :hover {
+        background: grey;
+    }
+
     .btn-view {
         margin-top: 10px;
-        background: #007bff;
+        background: black;
         color: white;
         border: none;
         padding: 6px 10px;
@@ -116,7 +120,7 @@ else
     }
 
         .btn-view:hover {
-            background: #0056b3;
+            background: grey;
         }
 
     .order-items {
@@ -148,6 +152,8 @@ else
         margin: 20px auto;
         animation: spin 1s linear infinite;
     }
+
+   
 </style>
 
 @code {
@@ -157,26 +163,36 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadOrders();
+        // 🛡️ Secure login check before anything loads
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        var userId = await JS.InvokeAsync<string>("localStorage.getItem", "userId");
+
+        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
+        {
+            // 🚫 Redirect to login if not authorized
+            NavManager.NavigateTo("/", forceLoad: true);
+            return;
+        }
+
+        await LoadOrders(token, userId);
     }
 
-    private async Task LoadOrders()
+    private async Task LoadOrders(string token, string userId)
     {
         try
         {
-            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
-            var userId = await JS.InvokeAsync<string>("localStorage.getItem", "userId");
-
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
-            {
-                NavManager.NavigateTo("/");
-                return;
-            }
-
             Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var response = await Http.GetAsync($"https://localhost:7117/api/Orders/ByUser/{userId}");
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                // 🔐 Token expired → clear storage and redirect
+                await JS.InvokeVoidAsync("localStorage.clear");
+                NavManager.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
             if (response.IsSuccessStatusCode)
             {
                 orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>() ?? new();

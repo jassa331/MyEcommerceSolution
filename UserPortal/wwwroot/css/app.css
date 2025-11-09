@@ -15,6 +15,63 @@ h1:focus {
         transform: rotate(360deg);
     }
 }
+/* --- Samsung / Android phones (small screens, ~360px to 480px) --- */
+@media only screen and (max-width: 480px) {
+    .orders-container {
+        grid-template-columns: 1fr; /* single column layout */
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .order-card {
+        padding: 15px;
+    }
+
+    .item-img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .btn-view {
+        padding: 5px 8px;
+        font-size: 14px;
+    }
+}
+
+/* --- iPhones (portrait mode, ~375px wide like iPhone 6/7/8/X) --- */
+@media only screen and (min-device-width: 375px) and (max-device-width: 414px) {
+    .orders-container {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+
+    .order-card {
+        padding: 16px;
+    }
+
+    .item-img {
+        width: 55px;
+        height: 55px;
+    }
+}
+
+/* --- iPads (portrait and landscape, 768px to 1024px) --- */
+@media only screen and (min-width: 768px) and (max-width: 1024px) {
+    .orders-container {
+        grid-template-columns: repeat(2, 1fr); /* 2-column layout */
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .order-card {
+        padding: 18px;
+    }
+
+    .item-img {
+        width: 60px;
+        height: 60px;
+    }
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
