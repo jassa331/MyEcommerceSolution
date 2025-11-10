@@ -1,0 +1,159 @@
+﻿@page "/user_profile"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<h3 style="text-align:center; color:#222;">👤 My Profile</h3>
+
+@if (isLoading)
+{
+    <div style="text-align:center; margin-top:50px;">
+        <p>Loading profile...</p>
+        <div class="spinner"></div>
+    </div>
+}
+else if (profile == null)
+{
+    <p style="text-align:center; margin-top:50px;">Profile not found or unauthorized.</p>
+}
+else
+{
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="avatar">@profile.UserName.Substring(0, 1).ToUpper()</div>
+            <h2>@profile.UserName</h2>
+            <p><strong>Email:</strong> @profile.Email</p>
+            <p><strong>Mobile:</strong> @profile.MobileNumber</p>
+            <p><strong>Role:</strong> @(profile.IsAdmin ? "Admin" : "User")</p>
+
+            <button @onclick="Logout"
+                    style="margin-top:15px;
+                               padding:10px 20px;
+                               background-color:#222;
+                               color:#fff;
+                               border:none;
+                               border-radius:5px;
+                               cursor:pointer;">
+                🚪 Logout
+            </button>
+        </div>
+    </div>
+}
+
+<style>
+    .profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+    }
+
+    .profile-card {
+        background: #fff;
+        padding: 25px 40px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        max-width: 350px;
+        width: 100%;
+    }
+
+        .profile-card h2 {
+            color: #222;
+            margin-bottom: 15px;
+        }
+
+        .profile-card p {
+            margin: 8px 0;
+            color: #555;
+            font-size: 15px;
+        }
+
+    .avatar {
+        width: 80px;
+        height: 80px;
+        background: #000;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-weight: bold;
+    }
+
+    /* Spinner */
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #333;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: 20px auto;
+        animation: spin 1s linear infinite;
+    }
+
+    
+</style>
+
+@code {
+    private UserProfile? profile;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                NavManager.NavigateTo("/");
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7117/api/UserProfile/get-user-profile");
+
+            if (response.IsSuccessStatusCode)
+            {
+                profile = await response.Content.ReadFromJsonAsync<UserProfile>();
+            }
+            else
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ API Error: {response.StatusCode} - {err}");
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                    NavManager.NavigateTo("/");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error loading profile: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        NavManager.NavigateTo("/");
+    }
+
+    public class UserProfile
+    {
+        public Guid Id { get; set; }
+        public string UserName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string MobileNumber { get; set; } = "";
+        public bool IsAdmin { get; set; }
+    }
+}
