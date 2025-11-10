@@ -17,7 +17,7 @@ namespace User.API.DAL
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<OrderAddress> OrderAddresses { get; set; }
         public DbSet<OrderPayment> OrderPayments { get; set; }
-
+        public DbSet<UsersProfile> userr { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
