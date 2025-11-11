@@ -1,0 +1,234 @@
+﻿@page "/admin-orders"
+@inject IJSRuntime JS
+@inject HttpClient Http
+
+<h2 style="text-align:center; color:black;">📦 Customer Orders for My Products</h2>
+<div class="login-boxx">
+    <div class="table-container">
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Order #</th>
+                    <th style="width: 15%;">Product</th>
+                    <th style="width: 10%;">Total</th>
+                    <th style="width: 10%;">Status</th>
+                    <th style="width: 12%;">Payment</th>
+                    <th style="width: 28%;">Customer Address</th>
+                    <th style="width: 15%;">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in orders)
+                {
+                    <tr>
+                        <td>@o.OrderNumber</td>
+                        <td>@o.ProductName</td>
+                        <td>₹@o.TotalAmount.ToString("N2")</td>
+                        <td>
+                            <span class="status-badge">@o.OrderStatus</span>
+                        </td>
+                        <td>
+                            <span class="payment-badge">@o.PaymentStatus</span>
+                        </td>
+                        <td style="text-align:left;">
+                            @if (o.Addresses != null && o.Addresses.Count > 0)
+                            {
+                                var a = o.Addresses.First();
+                                <div>
+                                    <strong>@a.FullName</strong><br />
+                                    @a.Line1<br />
+                                    @if (!string.IsNullOrEmpty(a.Line2))
+                                    {
+                                        <text>@a.Line2<br /></text>
+                                    }
+                                    @a.City, @a.State - @a.PostalCode<br />
+                                    <span class="phone">📞 @a.Phone</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span>No Address</span>
+                            }
+                        </td>
+                        <td>@o.CreatedAt.ToString("dd MMM yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .login-boxx {
+        padding: 25px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+        max-width: 1200px;
+        margin: 25px auto;
+        overflow-x: auto;
+    }
+
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 15px;
+        table-layout: fixed;
+    }
+
+        .order-table th, .order-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+            word-wrap: break-word;
+            vertical-align: top;
+        }
+
+        .order-table th {
+            background-color: #000;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+
+        .order-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .order-table tr:hover {
+            background-color: #eef4ff;
+            transition: background-color 0.3s ease;
+        }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        background-color: #fdd835;
+        color: #000;
+        font-weight: 500;
+    }
+
+    .payment-badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        background-color: #4caf50;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    .phone {
+        font-size: 13px;
+        color: #333;
+    }
+
+  
+</style>
+
+@code {
+    private List<OrderDto>? orders;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Console.WriteLine("⚠️ No token found. Please login.");
+                isLoading = false;
+                return;
+            }
+
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7255/api/CustomerOrder/get-customer-orders");
+
+            if (response.IsSuccessStatusCode)
+            {
+                orders = await response.Content.ReadFromJsonAsync<List<OrderDto>>();
+            }
+            else
+            {
+                Console.WriteLine($"❌ Failed to load orders. Status: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🔥 Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class OrderDto
+    {
+        public Guid OrderId { get; set; }
+        public string? OrderNumber { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string? PaymentStatus { get; set; }
+        public string? OrderStatus { get; set; }
+        public string? ProductName { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public List<AddressDto>? Addresses { get; set; }
+    }
+
+    public class AddressDto
+    {
+        public string? FullName { get; set; }
+        public string? Line1 { get; set; }
+        public string? Line2 { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
+        public string? PostalCode { get; set; }
+        public string? Country { get; set; }
+        public string? Phone { get; set; }
+        public string? AddressType { get; set; }
+    }
+}
+
+<style>
+    .login-boxx {
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+        max-width: 1100px;
+        margin: 20px auto;
+    }
+
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .table-container th, .table-container td {
+        padding: 12px 15px;
+        text-align: center;
+        vertical-align: top;
+    }
+
+    .table-container th {
+        background-color: black;
+        color: white;
+    }
+
+    .table-container tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .table-container tr:hover {
+        background-color: #d6e4ff;
+        transition: 0.3s;
+    }
+
+    td div {
+        line-height: 1.4;
+    }
+</style>
