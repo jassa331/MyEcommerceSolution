@@ -13,6 +13,9 @@ builder.Services.AddControllers();
 // ? Configure DB context (uncomment and fix connection string if needed)
 builder.Services.AddDbContext<userportaldbcontext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var stripeSettings = builder.Configuration.GetSection("Stripe");
+Stripe.StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
+
 
 // ? Configure JWT authentication
 
