@@ -44,6 +44,7 @@ else
             <input placeholder="City" @bind="address.City" />
             <input placeholder="Postal Code" @bind="address.PostalCode" />
             <input placeholder="Phone" @bind="address.Phone" />
+            <button @onclick="PayOnline" class="btn-place">Pay Online (Stripe)</button>
 
             <button @onclick="PlaceOrder" class="btn-place">Place Order</button>
         </div>
@@ -137,7 +138,121 @@ else
     {
         await LoadCart();
     }
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var item = cartItems.First();
 
+    //         var request = new
+    //         {
+    //             OrderId = item.CartItemID,
+    //             Amount = item.Price * item.Quantity,
+    //             ProductName = item.Name
+    //         };
+
+    //         var response =  await Http.PostAsJsonAsync("api/Payment/CreateCheckoutSession",
+    // new
+    // {
+    //     ProductName = "Test",
+    //     Amount = 100
+    // });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+    //         var url = data["url"];
+
+    //         if (string.IsNullOrWhiteSpace(url))
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+    //             return;
+    //         }
+
+    //         // 🔥 FIX: Proper redirect to Stripe
+    //         await JS.InvokeVoidAsync("eval", $"window.location.href='{url}'");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var response = await Http.PostAsJsonAsync(
+    //             "api/Payment/CreateCheckoutSession",
+    //             new
+    //             {
+    //                 ProductName = "Test",
+    //                 Amount = 100
+    //             });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+    //         var url = data["url"];
+
+    //         if (string.IsNullOrWhiteSpace(url))
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+    //             return;
+    //         }
+
+    //         // 🔥 FINAL FIX – correct redirection
+    //         await JS.InvokeVoidAsync("open", url, "_self");
+    //         // or: await JS.InvokeVoidAsync("open", url, "_blank");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+    private async Task PayOnline()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync(
+                "https://localhost:7117/api/Payment/create-checkout-session",
+                new
+                {
+                    orderId = Guid.NewGuid(),
+                    amount = 100,
+                    productName = "Test"
+                });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+                return;
+            }
+
+            var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+            var url = data["url"];
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+                return;
+            }
+
+            await JS.InvokeVoidAsync("open", url, "_self");
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+    }
     private async Task LoadCart()
     {
         try
