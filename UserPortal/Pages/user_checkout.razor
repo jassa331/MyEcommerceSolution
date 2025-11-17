@@ -1,4 +1,5 @@
 ﻿@page "/user_checkout"
+@using System.Text.Json
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
@@ -237,7 +238,12 @@ else
                 return;
             }
 
-            var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(options);
             var url = data["url"];
 
             if (string.IsNullOrWhiteSpace(url))
@@ -246,13 +252,15 @@ else
                 return;
             }
 
-            await JS.InvokeVoidAsync("open", url, "_self");
+            // 🔥 Safe redirect (no exception)
+            await JS.InvokeVoidAsync("redirectToStripe", url);
         }
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
         }
     }
+
     private async Task LoadCart()
     {
         try
