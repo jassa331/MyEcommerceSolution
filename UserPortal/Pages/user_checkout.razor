@@ -219,47 +219,111 @@ else
     //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
     //     }
     // }
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var response = await Http.PostAsJsonAsync(
+    //             "api/Payment/create-checkout-session",
+    //             new
+    //             {
+    //                 orderId = Guid.NewGuid(),
+    //                 amount = 100,
+    //                 productName = "Test"
+    //             });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var options = new JsonSerializerOptions
+    //         {
+    //             PropertyNameCaseInsensitive = true
+    //         };
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(options);
+
+    //         var url = data["url"]; // stripe checkout url
+
+    //         await JS.InvokeVoidAsync("redirectToStripe", url);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+    // private async Task PayOnline()
+    // {
+    //     var response = await Http.PostAsJsonAsync(
+    //         "api/Payment/create-checkout-session",
+    //         new { amount = 100, productName = "Test" }
+    //     );
+
+    //     // var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+    //     // var url = result["url"];
+
+    //     // await JS.InvokeVoidAsync("redirectToStripe", url);
+    //     var result = await Http.PostAsJsonAsync("create-checkout-session", new { });
+    //     var data = await result.Content.ReadFromJsonAsync<CheckoutResponse>();
+
+    //     await JS.InvokeVoidAsync("redirectToStripe", data.url);
+
+    // }
     private async Task PayOnline()
     {
-        try
-        {
-            var response = await Http.PostAsJsonAsync(
-                "https://localhost:7117/api/Payment/create-checkout-session",
-                new
-                {
-                    orderId = Guid.NewGuid(),
-                    amount = 100,
-                    productName = "Test"
-                });
+        var response = await Http.PostAsJsonAsync(
+            "api/Payment/create-checkout-session",
+            new { amount = totalAmount, productName = "Cart Order" });
 
-            if (!response.IsSuccessStatusCode)
-            {
-                await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
-                return;
-            }
+        var data = await response.Content.ReadFromJsonAsync<CheckoutResponse>();
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(options);
-            var url = data["url"];
-
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
-                return;
-            }
-
-            // 🔥 Safe redirect (no exception)
-            await JS.InvokeVoidAsync("redirectToStripe", url);
-        }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
-        }
+        await JS.InvokeVoidAsync("redirectToStripe", data.url);
     }
+
+
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var response = await Http.PostAsJsonAsync(
+    //             "https://localhost:7117/api/Payment/create-checkout-session",
+    //             new
+    //             {
+    //                 orderId = Guid.NewGuid(),
+    //                 amount = 100,
+    //                 productName = "Test"
+    //             });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var options = new JsonSerializerOptions
+    //         {
+    //             PropertyNameCaseInsensitive = true
+    //         };
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(options);
+    //         var url = data["url"];
+
+    //         if (string.IsNullOrWhiteSpace(url))
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+    //             return;
+    //         }
+
+    //         // 🔥 Safe redirect (no exception)
+    //         await JS.InvokeVoidAsync("redirectToStripe", url);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
 
     private async Task LoadCart()
     {
@@ -407,6 +471,11 @@ else
         public string Country { get; set; } = "India";
         public string Phone { get; set; } = "";
     }
+    public class CheckoutResponse
+    {
+        public string url { get; set; }
+    }
+
 }
 
 @* @page "/user_checkout"
