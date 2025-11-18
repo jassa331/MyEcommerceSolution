@@ -11,7 +11,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp =>
 {
     var js = sp.GetRequiredService<IJSRuntime>();
-    var http = new HttpClient { BaseAddress = new Uri("https://localhost:7066/") };
+    var http = new HttpClient { BaseAddress = new Uri("https://localhost:7117/") };
+
 
     // attach token dynamically
     js.InvokeAsync<string>("localStorage.getItem", "authToken").AsTask().ContinueWith(t =>
@@ -22,6 +23,10 @@ builder.Services.AddScoped(sp =>
     });
 
     return http;
+});
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://localhost:7117/")
 });
 
 builder.Services.AddScoped(sp =>
