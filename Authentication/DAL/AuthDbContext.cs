@@ -8,6 +8,7 @@ namespace Authentication.DAL
         public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
         {
         }
+        //jassagithub access
 
         public DbSet<Userr> Userr { get; set; }
 
