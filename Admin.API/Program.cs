@@ -155,7 +155,7 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.InjectJavascript("/swagger-fix.js");
+    c.InjectJavascript("/swagger-fix-admin.js");
 });
 
 app.UseStaticFiles(new StaticFileOptions

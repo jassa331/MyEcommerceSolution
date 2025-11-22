@@ -167,7 +167,7 @@ namespace Authentication.Controllers
                 Token = token,
                 UserId = user.Id,
                 IsAdmin = user.IsAdmin,
-                RedirectUrl = user.IsAdmin ? "https://localhost:7066/" : "https://localhost:7117/user-dashboard"
+                RedirectUrl = user.IsAdmin ? "https://localhost:7066/" : "http://localhost:5231//user-dashboard"
             });
         }
 

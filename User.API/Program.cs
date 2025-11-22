@@ -104,7 +104,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
-{
+{   
     c.InjectJavascript("/swagger-fix.js");
 });
 
