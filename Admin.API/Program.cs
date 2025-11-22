@@ -133,11 +133,12 @@ builder.Services.AddEndpointsApiExplorer();
 var app = builder.Build();
 
 // ✅ Swagger UI (Only in Development)
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
 app.UseStaticFiles();
 // ✅ Serve Static Files (images, etc.)
 //app.UseStaticFiles(new StaticFileOptions
@@ -146,16 +147,36 @@ app.UseStaticFiles();
 //        Path.Combine(app.Environment.ContentRootPath, "wwwroot")),
 //    RequestPath = "/static"
 //});
-
-// ✅ Middleware Pipeline
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.InjectJavascript("/swagger-fix.js");
+});
 
-// ✅ Map Controllers
+app.UseStaticFiles(new StaticFileOptions
+{
+    ServeUnknownFileTypes = true
+});
+
 app.MapControllers();
-
-// ✅ Run Application
 app.Run();
+
+// ✅ Middleware Pipeline
+//app.UseHttpsRedirection();
+//app.UseCors("AllowAll");
+//app.UseAuthentication();
+//app.UseAuthorization();
+//app.UseSwagger();
+//app.UseSwaggerUI();
+
+
+//// ✅ Map Controllers
+//app.MapControllers();
+
+//// ✅ Run Application
+//app.Run();
