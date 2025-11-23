@@ -275,12 +275,14 @@ else
     {
         var response = await Http.PostAsJsonAsync(
             "api/Payment/create-checkout-session",
-            new { amount = totalAmount, productName = "Cart Order" });
+            new { amount = totalAmount, productName = "Cart Order" }
+        );
 
         var data = await response.Content.ReadFromJsonAsync<CheckoutResponse>();
-
         await JS.InvokeVoidAsync("redirectToStripe", data.url);
     }
+
+
 
 
     // private async Task PayOnline()
@@ -471,6 +473,14 @@ else
         public string Country { get; set; } = "India";
         public string Phone { get; set; } = "";
     }
+    public class StripeCheckoutRequest
+    {
+        public decimal Amount { get; set; }
+        public string ProductName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+    }
+
     public class CheckoutResponse
     {
         public string url { get; set; }
