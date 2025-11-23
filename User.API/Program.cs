@@ -85,11 +85,15 @@ var app = builder.Build();
 
 // Configure middleware pipeline
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI(c =>
+//    {
+//        c.InjectJavascript("/swagger-fix.js");
+//    });
+
+//}
 
 app.UseHttpsRedirection();
 
@@ -98,6 +102,11 @@ app.UseCors("AllowAll");
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{   
+    c.InjectJavascript("/swagger-fix.js");
+});
 
 app.MapControllers();
 
