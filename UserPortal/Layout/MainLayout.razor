@@ -12,7 +12,11 @@
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="logout-btn" @onclick="Logout">Logout</button>
+        <a href="user_profile" class="profile-link">
+            <span class="profile-icon">👤</span>
+            My Profile
+        </a>
+
     </div>
 </header>
 
@@ -32,6 +36,28 @@
         cursor: pointer;
         font-weight: bold;
         transition: all 0.3s ease;
+    }
+
+    .profile-link {
+        text-decoration: none;
+        color: #000;
+        font-size: 16px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: 0.2s ease-in-out;
+    }
+
+        .profile-link:hover {
+            background-color: #f0f0f0;
+            color: #000;
+        }
+
+    .profile-icon {
+        font-size: 18px;
     }
 
         .logout-btn:hover {

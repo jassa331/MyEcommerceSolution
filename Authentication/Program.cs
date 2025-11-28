@@ -73,16 +73,20 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 // ? Middlewares
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // Must for swagger UI
+app.UseRouting();
+
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.InjectJavascript("/swagger-fix.js");
+});
+
 app.MapControllers();
 
 app.Run();

@@ -17,9 +17,9 @@ namespace User.API.Models
         [JsonIgnore]
         public Guid AppUserId { get; set; }        // Buyer
         [JsonIgnore]
-        public Guid UsersId { get; set; }
+        public Guid UsersId { get; set; }// Seller
         public Guid ProductId { get; set; }   // ✅ from CartItem
-        public Guid CartItemId { get; set; } // Seller
+        public Guid CartItemId { get; set; } 
         public decimal TotalAmount { get; set; }
         public decimal SubTotalAmount { get; set; }
         public decimal ShippingAmount { get; set; }

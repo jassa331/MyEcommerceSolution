@@ -1,31 +1,35 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Admin.API.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Admin.API.NewFolder
 {
-  
-        public class Product
-        {
-            [Key]
-            public Guid ProductId { get; set; }
 
-            [Required]
-            public string Name { get; set; } = "";
+    public class Product
+    {
+        [Key]
+        public Guid ProductId { get; set; }
 
-            [Required]
-            public string Description { get; set; } = "";
+        [Required]
+        public string Name { get; set; } = "";
 
-            [Required]
-            public decimal Price { get; set; }
+        [Required]
+        public string Description { get; set; } = "";
 
-            [Required]
-            public string Category { get; set; } = "";
+        [Required]
+        public decimal Price { get; set; }
 
-            public bool InStock { get; set; }
+        [Required]
+        public string Category { get; set; } = "";
 
-            public string? ImageUrl { get; set; }
-        public Guid Usersid { get;  set; }
+        public bool InStock { get; set; }
+
+        public string? ImageUrl { get; set; }
+
+        public Guid Usersid { get; set; }  // Admin ID
+
+        // ✅ Navigation property
+        public ICollection<Order> Orders { get; set; }
     }
-
 
 
 
