@@ -4,131 +4,199 @@
 
 <h2 style="text-align:center; color:black;">My Uploaded Products</h2>
 
-<div style="text-align:center; margin-bottom:20px;">
-    <h4>Counter: @currentCount</h4>
-    <button class="btn" @onclick="IncrementCount">Click me</button>
+<div class="counter-box">
+   
 </div>
 
 @if (isLoading)
-{
-    <p style="text-align:center;">Loading...</p>
+{ <p class="center-text">Loading...</p>
 }
 else if (products == null || products.Count == 0)
-{
-    <p style="text-align:center;">No products found.</p>
+{ <p class="center-text">No products found.</p>
 }
 else
-{
-    <div class="login-boxx">
-        <div class="table-container">
-            <table>
-                <thead>
+{ <div class="content-box"> <div class="table-container"> <table class="modern-table"> <thead> <tr> <th>Image</th> <th>Description</th> <th>Price</th> <th>Category</th> <th>Stock</th> <th>Action</th> </tr> </thead>
+
+```
+            <tbody>
+                @foreach (var p in products)
+                {
                     <tr>
-                        <th>Image</th>
-                        @* <th>Name</th> *@
-                        <th>Description</th>
-                        <th>Price</th>
-                        <th>Category</th>
-                        <th>Stock</th>
+                        <td>
+                            <img src="@p.ImageUrl" class="prod-img" />
+                        </td>
+                        <td>@p.Description</td>
+                        <td>₹@p.Price</td>
+                        <td>@p.Category</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked="@p.InStock" disabled />
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <button class="btn-edit" @onclick="(() => EditProduct(p))">Edit</button>
+                            <button class="btn-danger" @onclick="(() => DeleteProduct(p.Id))">Delete</button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var p in products)
-                    {
-                        <tr>
-                            <td>
-                                @if (!string.IsNullOrEmpty(p.ImageUrl))
-                                {
-                                    <img src="@p.ImageUrl" alt="@p.Name" width="100" height="100" />
-                                }
-                                else
-                                {
-                                    <span>No Image</span>
-                                }
-                            </td>
-                           @*  <td>@p.Name</td> *@
-                            <td>@p.Description</td>
-                            <td>₹@p.Price</td>
-                            <td>@p.Category</td>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" checked="@p.InStock" disabled />
-                                    <span class="slider"></span>
-                                </label>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     </div>
+</div>
+
+
+}
+
+<!-- Edit Modal -->
+
+@if (editingProduct != null)
+{ <div class="modal-backdrop"> <div class="modal"> <h3>Edit Product</h3> <label>Description:</label>
+<input type="text" @bind="editingProduct.Description" /> <label>Price:</label>
+<input type="number" step="0.01" @bind="editingProduct.Price" /> <label>Category:</label>
+<input type="text" @bind="editingProduct.Category" /> <label>In Stock:</label>
+<input type="checkbox" @bind="editingProduct.InStock" /> <div class="modal-actions">
+<button class="btn" @onclick="SaveProduct">Save</button>
+<button class="btn-danger" @onclick="CancelEdit">Cancel</button> </div> </div> </div>
 }
 
 @code {
-    private List<ProductDto>? products;
-    private bool isLoading = true;
-    private int currentCount = 0;
+private List<ProductDto>? products;
+private bool isLoading = true;
+private int currentCount = 0;
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
 
-    protected override async Task OnInitializedAsync()
+private ProductUpdateDto? editingProduct = null;
+private Guid editingProductId;
+
+private void IncrementCount() => currentCount++;
+
+protected override async Task OnInitializedAsync()
+{
+    await LoadProducts();
+}
+
+private async Task LoadProducts()
+{
+    try
     {
-        try
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token)) { isLoading = false; return; }
+
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await Http.GetAsync("https://localhost:7255/api/Product/my-products");
+
+        if (response.IsSuccessStatusCode)
         {
-            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
 
-            if (string.IsNullOrEmpty(token))
+            foreach (var p in products)
             {
-                Console.WriteLine("⚠️ No token found. Please login.");
-                isLoading = false;
-                return;
-            }
-
-            Http.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await Http.GetAsync("https://localhost:7255/api/Product/my-products");
-
-            if (response.IsSuccessStatusCode)
-            {
-                products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
-
-                // ✅ Fix image paths if stored locally
-                foreach (var p in products)
+                if (!string.IsNullOrEmpty(p.ImageUrl))
                 {
-                    if (!string.IsNullOrEmpty(p.ImageUrl) && !p.ImageUrl.StartsWith("http"))
-                    {
+                    if (!p.ImageUrl.StartsWith("http"))
                         p.ImageUrl = $"https://localhost:7255/{p.ImageUrl.Replace("\\", "/")}";
-                    }
+                }
+                else
+                {
+                    p.ImageUrl = "https://via.placeholder.com/80x80?text=No+Image";
                 }
             }
-            else
-            {
-                Console.WriteLine($"❌ Failed to load products. Status: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"🔥 Error: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
         }
     }
-
-    public class ProductDto
+    catch (Exception ex)
     {
-        public string? Name { get; set; }
-        public string? Description { get; set; }
-        public decimal Price { get; set; }
-        public string? Category { get; set; }
-        public string? ImageUrl { get; set; }
-        public bool InStock { get; set; }
+        Console.WriteLine(ex.Message);
     }
+    finally
+    {
+        isLoading = false;
+    }
+}
+
+private async Task DeleteProduct(Guid id)
+{
+    bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure?");
+    if (!confirmed) return;
+
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+    Http.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+    var result = await Http.DeleteAsync($"https://localhost:7255/api/Product/delete/{id}");
+
+    if (result.IsSuccessStatusCode)
+    {
+        await LoadProducts();
+        await JS.InvokeVoidAsync("alert", "Product deleted!");
+    }
+    else
+    {
+        await JS.InvokeVoidAsync("alert", "Delete failed!");
+    }
+}
+
+private void EditProduct(ProductDto product)
+{
+    editingProductId = product.Id;
+    editingProduct = new ProductUpdateDto
+    {
+        Name = product.Description,
+        Description = product.Description,
+        Price = product.Price,
+        Category = product.Category,
+        InStock = product.InStock
+    };
+}
+
+private void CancelEdit()
+{
+    editingProduct = null;
+}
+
+private async Task SaveProduct()
+{
+    if (editingProduct == null) return;
+
+    var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+    Http.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+    var response = await Http.PutAsJsonAsync($"https://localhost:7255/api/Product/update/{editingProductId}", editingProduct);
+    if (response.IsSuccessStatusCode)
+    {
+        await JS.InvokeVoidAsync("alert", "Product updated successfully!");
+        editingProduct = null;
+        await LoadProducts();
+    }
+    else
+    {
+        await JS.InvokeVoidAsync("alert", "Update failed!");
+    }
+}
+
+public class ProductDto
+{
+    public Guid Id { get; set; }
+    public string? Description { get; set; }
+    public decimal Price { get; set; }
+    public string? Category { get; set; }
+    public string? ImageUrl { get; set; }
+    public bool InStock { get; set; }
+}
+
+public class ProductUpdateDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public decimal Price { get; set; }
+    public string? Category { get; set; }
+    public bool InStock { get; set; }
+}
+
+
 }
 
 <style>
@@ -226,6 +294,48 @@ else
             transition: .4s;
             border-radius: 50%;
         }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5); /* semi-transparent black */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000; /* make sure it's above everything else */
+    }
+
+    .modal {
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 1001; /* above the backdrop */
+    }
+
+        .modal h3 {
+            margin-top: 0;
+        }
+    .modal-backdrop {
+        overflow-y: auto;
+    }
+
+    .modal-backdrop {
+        animation: fadeIn 0.3s ease;
+    }
+
+
+    .modal-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
 
     input:checked + .slider {
         background-color: #4caf50;
