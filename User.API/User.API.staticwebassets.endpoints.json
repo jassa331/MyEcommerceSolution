@@ -1,0 +1,252 @@
+{
+  "Version": 1,
+  "ManifestType": "Publish",
+  "Endpoints": [
+    {
+      "Route": "images/AC.0i1td7bxuy.jfif",
+      "AssetFile": "images/AC.jfif",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4206"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/pjpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"KLpxsKEJoF/GiXPP77gZ6yKOwWRW9Oe159mfch+glKc=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 12 Nov 2025 10:06:58 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "0i1td7bxuy"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-KLpxsKEJoF/GiXPP77gZ6yKOwWRW9Oe159mfch+glKc="
+        },
+        {
+          "Name": "label",
+          "Value": "images/AC.jfif"
+        }
+      ]
+    },
+    {
+      "Route": "images/AC.jfif",
+      "AssetFile": "images/AC.jfif",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4206"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/pjpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"KLpxsKEJoF/GiXPP77gZ6yKOwWRW9Oe159mfch+glKc=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 12 Nov 2025 10:06:58 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-KLpxsKEJoF/GiXPP77gZ6yKOwWRW9Oe159mfch+glKc="
+        }
+      ]
+    },
+    {
+      "Route": "images/cap.jfif",
+      "AssetFile": "images/cap.jfif",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2958"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/pjpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"c9TWCAf5RPCiEpptSgmXU1EAZEHaFNHJOc/HNArOd9Q=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 12 Nov 2025 10:06:58 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-c9TWCAf5RPCiEpptSgmXU1EAZEHaFNHJOc/HNArOd9Q="
+        }
+      ]
+    },
+    {
+      "Route": "images/cap.ptq74lrkm9.jfif",
+      "AssetFile": "images/cap.jfif",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2958"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/pjpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"c9TWCAf5RPCiEpptSgmXU1EAZEHaFNHJOc/HNArOd9Q=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 12 Nov 2025 10:06:58 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "ptq74lrkm9"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-c9TWCAf5RPCiEpptSgmXU1EAZEHaFNHJOc/HNArOd9Q="
+        },
+        {
+          "Name": "label",
+          "Value": "images/cap.jfif"
+        }
+      ]
+    },
+    {
+      "Route": "images/footballer.jfif",
+      "AssetFile": "images/footballer.jfif",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5219"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/pjpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sPrQRI3dvTOKSpgB9mO87/ZU7+v2ZmbHRBJke9qFRik=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 12 Nov 2025 10:06:58 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-sPrQRI3dvTOKSpgB9mO87/ZU7+v2ZmbHRBJke9qFRik="
+        }
+      ]
+    },
+    {
+      "Route": "images/footballer.w8hsf8r698.jfif",
+      "AssetFile": "images/footballer.jfif",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5219"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/pjpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"sPrQRI3dvTOKSpgB9mO87/ZU7+v2ZmbHRBJke9qFRik=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 12 Nov 2025 10:06:58 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "w8hsf8r698"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-sPrQRI3dvTOKSpgB9mO87/ZU7+v2ZmbHRBJke9qFRik="
+        },
+        {
+          "Name": "label",
+          "Value": "images/footballer.jfif"
+        }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@ namespace User.API.DAL
         {
 
         }
+
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<RevokedToken> RevokedTokens { get; set; }
@@ -19,10 +20,13 @@ namespace User.API.DAL
         public DbSet<OrderPayment> OrderPayments { get; set; }
         public DbSet<UsersProfile> userr { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
+        public DbSet<SELLERFOAM> seller { get; set; } 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
+            modelBuilder.Entity<SELLERFOAM>()
+          .Property(s => s.SellerId)
+          .ValueGeneratedOnAdd();
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.OrderPayments)
                 .WithOne(p => p.Order)

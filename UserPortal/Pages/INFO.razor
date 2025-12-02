@@ -1,0 +1,239 @@
+﻿
+@page "/seller-request"
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+
+<EditForm Model="seller" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="info-card">
+        <h2>Become a Professional Seller</h2>
+        <p>
+            Welcome! If you want to register as a seller, please provide your details below.
+            For any seller-related reports, contact: <b>jassadhammi@gmail.com</b>
+        </p>
+
+        <div class="grid">
+            <div>
+                <label>Full Name *</label>
+                <InputText @bind-Value="seller.Name" class="input" />
+                <ValidationMessage For="() => seller.Name" />
+            </div>
+
+            <div>
+                <label>Phone Number *</label>
+                <InputText @bind-Value="seller.Phone" class="input" />
+                <ValidationMessage For="() => seller.Phone" />
+            </div>
+
+            <div class="full">
+                <label>Address *</label>
+                <InputTextArea @bind-Value="seller.Address" class="input" />
+                <ValidationMessage For="() => seller.Address" />
+            </div>
+
+            <div>
+                <label>Category *</label>
+                <InputSelect @bind-Value="seller.Category" class="input">
+                    <option value="">-- Select Category --</option>
+                    @foreach (var c in Categories)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => seller.Category" />
+            </div>
+
+            <div>
+                <label>Add New Category</label>
+                <input type="text" @bind="newCategory" class="input" />
+                <button type="button" class="btn" @onclick="AddCategory">Add</button>
+            </div>
+
+            <div>
+                <label>Email *</label>
+                <InputText @bind-Value="seller.Email" class="input" />
+                <ValidationMessage For="() => seller.Email" />
+            </div>
+
+            <div>
+                <label>Gender *</label>
+                <InputSelect @bind-Value="seller.Gender" class="input">
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </InputSelect>
+            </div>
+
+            <div>
+                <label>PAN *</label>
+                <InputText @bind-Value="seller.PAN" class="input" />
+                <ValidationMessage For="() => seller.PAN" />
+            </div>
+
+            <div>
+                <label>Aadhaar *</label>
+                <InputText @bind-Value="seller.Aadhaar" class="input" />
+                <ValidationMessage For="() => seller.Aadhaar" />
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Submit Details</button>
+
+        @if (submitted)
+        {
+            <div class="summary-box">
+                <h3>@apiMessage</h3>
+            </div>
+        }
+    </div>
+</EditForm>
+
+<style>
+    .info-card {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 25px;
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+        .info-card h2 {
+            margin-bottom: 10px;
+            color: #1e3a8a;
+        }
+
+        .info-card p {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .full {
+        grid-column: 1 / span 2;
+    }
+
+    .input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #d0d7e2;
+        border-radius: 8px;
+    }
+
+    .btn {
+        margin-top: 8px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: black;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    .submit-btn {
+        margin-top: 20px;
+        padding: 10px 18px;
+        background: black;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .summary-box {
+        margin-top: 20px;
+        padding: 16px;
+        background: #f0fdf4;
+        border-radius: 8px;
+        border: 1px solid #bbf7d0;
+    }
+
+    label {
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
+
+@code {
+    private SellerModel seller = new();
+    private bool submitted = false;
+    private string newCategory = string.Empty;
+    private string apiMessage = "";
+
+    private List<string> Categories = new() {  "Electronics",
+    "Fashion",
+    "Sports",
+    "Home Appliances",
+    "Books & Stationery",
+    "Beauty & Personal Care" };
+
+    void AddCategory()
+    {
+        if (!string.IsNullOrWhiteSpace(newCategory) && !Categories.Contains(newCategory))
+        {
+            Categories.Add(newCategory);
+            seller.Category = newCategory;
+            newCategory = string.Empty;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        submitted = false;
+
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                Http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await Http.PostAsJsonAsync(
+                "https://localhost:7117/api/Sellerfoamsave/save-seller-foam",
+                seller
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                apiMessage = "Your Request have been submitted successfully! Our support team will contact you shortly.";
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                apiMessage = $"Error: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            apiMessage = $"Something went wrong: {ex.Message}";
+        }
+
+        submitted = true;
+    }
+
+    public class SellerModel
+    {
+        [Required] public string Name { get; set; }
+        [Required][StringLength(10, MinimumLength = 10)] public string Phone { get; set; }
+        [Required] public string Address { get; set; }
+        [Required] public string Category { get; set; }
+        [Required][EmailAddress] public string Email { get; set; }
+        public string Gender { get; set; } = "Male";
+        [Required][RegularExpression("[A-Z]{5}[0-9]{4}[A-Z]")] public string PAN { get; set; }
+        [Required][RegularExpression("[0-9]{12}")] public string Aadhaar { get; set; }
+    }
+}
