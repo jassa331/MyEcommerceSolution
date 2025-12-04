@@ -19,7 +19,7 @@ public class ProductImageController : ControllerBase
 
     //[HttpPost("upload")]
     //[Consumes("multipart/form-data")]
- 
+
     //public async Task<IActionResult> Upload([FromForm] ProductUploadDto model)
     //{
     //    if (model.File == null) return BadRequest("No file uploaded");
@@ -61,7 +61,18 @@ public class ProductImageController : ControllerBase
 
     //    return Ok(product);
     //}
+    [HttpGet("get-electronics")]
+    public async Task<IActionResult> GetProducts()
+    {
+        var userIdClaim = User.FindFirst("UserId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+            return Unauthorized("Invalid or missing UserId claim.");
+        var products = await _context.Products
+            .FromSqlRaw("EXEC GetAllProducts")
+            .ToListAsync();
 
+        return Ok(products);
+    }
 
     [HttpGet("getall")]
     public async Task<IActionResult> GetAll()
