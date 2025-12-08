@@ -86,15 +86,35 @@
 
         currentUserId = Guid.Parse(idString);
 
-        allProducts = await Http.GetFromJsonAsync<List<ProductImage>>("https://localhost:7117/api/ProductImage/get-electronics");
-        filteredProducts = allProducts;
-
-        // Initialize all product quantities to 1
-        foreach (var product in allProducts)
+        try
         {
-            productQuantities[product.ProductId] = 1;
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7117/api/User/dashboard");
+            request.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var err = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"API Error: {response.StatusCode} - {err}");
+                return;
+            }
+
+            allProducts = await response.Content.ReadFromJsonAsync<List<ProductImage>>() ?? new();
+            filteredProducts = allProducts;
+
+            foreach (var product in allProducts)
+            {
+                productQuantities[product.ProductId] = 1;
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Exception: {ex.Message}");
         }
     }
+
 
     // 🔹 Quantity Controls
     private int GetQuantity(Guid productId)
@@ -136,7 +156,6 @@
             Quantity = quantity,
             ProductImageUrl = product.ImageUrl
         };
-
 
 
         try
