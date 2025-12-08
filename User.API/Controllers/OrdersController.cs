@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using Stripe;
+using Stripe.Checkout;
 using System;
 using System.Security.Claims;
 using System.Text.Json;
@@ -23,6 +24,41 @@ namespace User.Controllers
             _context = context;
         }
 
+        [HttpPost("payment-success")]
+        public async Task<IActionResult> PaymentSuccess([FromQuery] string session_id)
+        {
+            StripeConfiguration.ApiKey = "sk_test_51SSAQMBOxzp7UNACemUl8X68qvF8bywcPV87XnqZ9ssbQfcHQaQpquwNslptpjWCd6fOsU726IwIGsUVdFP0axBg00kpqo6W1l";
+
+            var service = new SessionService();
+            var session = service.Get(session_id);
+
+            var orderId = session.ClientReferenceId;
+
+            Guid oid = Guid.Parse(orderId);
+
+            var order = await _context.Orders
+                            .Include(x => x.OrderPayments)
+                            .FirstOrDefaultAsync(x => x.OrderId == oid);
+
+            if (order == null)
+                return BadRequest("Order not found");
+
+            // ✅ Update order
+            order.PaymentStatus = "Paid";
+            order.OrderStatus = "Confirmed";
+
+            var payment = order.OrderPayments.FirstOrDefault();
+            if (payment != null)
+            {
+                payment.Status = "Success";
+                payment.ProviderPaymentId = session.PaymentIntentId;
+                payment.ResponseRaw = session.ToJson();
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Order payment confirmed");
+        }
 
         // 🧾 GET: Get All Orders by Logged-in User
         [HttpPost("Create")]

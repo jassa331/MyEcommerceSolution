@@ -17,26 +17,34 @@ public class PaymentController : ControllerBase
         var options = new SessionCreateOptions
         {
             PaymentMethodTypes = new List<string> { "card" },
+
             LineItems = new List<SessionLineItemOptions>
+    {
+        new SessionLineItemOptions
         {
-            new SessionLineItemOptions
+            PriceData = new SessionLineItemPriceDataOptions
             {
-                PriceData = new SessionLineItemPriceDataOptions
+                UnitAmount = (long)(req.Amount * 100),
+                Currency = "inr",
+                ProductData = new SessionLineItemPriceDataProductDataOptions
                 {
-                    UnitAmount = (long)(req.Amount * 100),  // ₹ → paise
-                    Currency = "inr",                       // IMPORTANT
-                    ProductData = new SessionLineItemPriceDataProductDataOptions
-                    {
-                        Name = req.ProductName
-                    }
-                },
-                Quantity = 1
-            }
-        },
+                    Name = req.ProductName
+                }
+            },
+            Quantity = 1
+        }
+    },
+
             Mode = "payment",
-            SuccessUrl = $"{domain}/user_orders",
+
+            // ✅ THIS IS THE MISSING LINE
+            ClientReferenceId = req.OrderId.ToString(),
+
+            SuccessUrl = $"{domain}/payment_success?session_id={{CHECKOUT_SESSION_ID}}",
             CancelUrl = $"{domain}/cancel"
         };
+
+
 
         var service = new SessionService();
         var session = service.Create(options);
