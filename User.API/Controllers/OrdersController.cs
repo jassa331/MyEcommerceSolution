@@ -95,7 +95,7 @@ namespace User.Controllers
                 TaxAmount = request.TaxAmount,
                 TotalAmount = total,
                 PaymentMethod = request.PaymentMethod ?? "COD",
-                PaymentStatus = "Pending",
+                PaymentStatus = "---",
                 OrderStatus = "New",
                 IsActive = true,
                 IsDeleted = false,
