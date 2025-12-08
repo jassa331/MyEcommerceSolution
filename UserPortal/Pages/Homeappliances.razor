@@ -1,4 +1,4 @@
-﻿@page "/electronics"
+﻿@page "/homeappliances"
 @using System.Net.Http.Json
 @using System.Text.Json.Serialization
 @inject HttpClient Http
@@ -17,7 +17,7 @@
     }
     else
     {
-        <h1 style="color:black;">📺Electronics</h1>
+        <h1 style="color:black;">❄️Home Appliances</h1>
 
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
             @foreach (var product in filteredProducts)
@@ -88,7 +88,7 @@
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7117/api/User/dashboard");
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7117/api/User/HomeAppliances-products");
             request.Headers.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
