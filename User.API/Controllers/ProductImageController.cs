@@ -77,7 +77,10 @@ public class ProductImageController : ControllerBase
     [HttpGet("getall")]
     public async Task<IActionResult> GetAll()
     {
-        var products = await _context.Products.ToListAsync();
+        var products = await _context.Products
+            .Where(p => !p.IsDeleted)
+            .ToListAsync();
+
         return Ok(products);
     }
 }

@@ -105,14 +105,14 @@ namespace Admin.API.Controllers
                 return Unauthorized("Invalid or missing UserId claim.");
 
             var products = await _context.Products
-                .Where(p => p.Usersid == userId)
+                .Where(p => p.Usersid == userId && !p.IsDeleted)
                 .ToListAsync();
 
             return Ok(products);
         }
 
         // ✅ 4. Update Product (Owner only)
-        [HttpPut("update/{id}")]
+        [HttpPut("update-PRODUCTS/{id}")]
         public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductUpdateDto model)
         {
             var userIdClaim = User.FindFirst("UserId")?.Value;
@@ -138,6 +138,30 @@ namespace Admin.API.Controllers
             return Ok(new { message = "✅ Product updated successfully", product });
         }
 
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetProductById(Guid id)
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+                return Unauthorized("Invalid or missing UserId claim.");
+            var product = await _context.Products
+                .Where(p => !p.IsDeleted)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+
+            if (product == null)
+                return NotFound("Product not found.");
+
+            var dto = new ProductUpdateDto
+            {
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Category = product.Category,
+                InStock = product.InStock
+            };
+
+            return Ok(dto);
+        }
         // ✅ 5. Delete Product (Owner only)
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
@@ -153,10 +177,13 @@ namespace Admin.API.Controllers
             if (product.Usersid != userId)
                 return Forbid("You cannot delete another user's product.");
 
-            _context.Products.Remove(product);
+            // ✅ Soft delete
+            product.IsDeleted = true;
+            product.IsActive = false;
+
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "✅ Product deleted successfully" });
+            return Ok(new { message = "✅ Product soft deleted" });
         }
         [AllowAnonymous]
         [HttpGet("show-token")]

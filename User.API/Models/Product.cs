@@ -22,6 +22,8 @@ namespace User.API.Models
         public string Category { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }
         public bool InStock { get; set; }
+        public bool IsDeleted { get; set; }
+        public bool IsActive { get; set; }
     }
     public class OrderAddressDto
     {

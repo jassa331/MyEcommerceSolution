@@ -26,7 +26,7 @@ namespace User.API.Controllers
                 return Unauthorized("User not logged in or claim missing");
 
             var products = await _geteletronics.Products
-                .Where(p => p.Category == "Electronics")
+                .Where(p => p.Category == "Electronics" && !p.IsDeleted)
                 .ToListAsync();
 
             return Ok(products);
@@ -41,7 +41,7 @@ namespace User.API.Controllers
                 return Unauthorized("User not logged in or claim missing");
 
             var products = await _geteletronics.Products
-                .Where(p => p.Category == "Fashion")
+                .Where(p => p.Category == "Fashion" && !p.IsDeleted)
                 .ToListAsync();
 
             return Ok(products);
@@ -56,7 +56,7 @@ namespace User.API.Controllers
                 return Unauthorized("User not logged in or claim missing");
 
             var products = await _geteletronics.Products
-                .Where(p => p.Category == "Sports")
+                .Where(p => p.Category == "Sports" && !p.IsDeleted)
                 .ToListAsync();
 
             return Ok(products);
@@ -71,7 +71,7 @@ namespace User.API.Controllers
                 return Unauthorized("User not logged in or claim missing");
 
             var products = await _geteletronics.Products
-                .Where(p => p.Category == "Home Appliances")
+                .Where(p => p.Category == "Home Appliances" && !p.IsDeleted)
                 .ToListAsync();
 
             return Ok(products);
@@ -86,7 +86,7 @@ namespace User.API.Controllers
                 return Unauthorized("User not logged in or claim missing");
 
             var products = await _geteletronics.Products
-                .Where(p => p.Category == "Books & Stationery")
+                .Where(p => p.Category == "Books & Stationery" && !p.IsDeleted)
                 .ToListAsync();
 
             return Ok(products);
@@ -101,8 +101,8 @@ namespace User.API.Controllers
                 return Unauthorized("User not logged in or claim missing");
 
             var products = await _geteletronics.Products
-                .Where(p => p.Category == "Beauty & Personal Care")
-                .ToListAsync();
+                 .Where(p => p.Category == "Beauty & Personal Care" && !p.IsDeleted)
+                 .ToListAsync();
 
             return Ok(products);
         }
