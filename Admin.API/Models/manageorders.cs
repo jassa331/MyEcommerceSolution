@@ -60,4 +60,16 @@
         public List<OrderItem> Items { get; set; }
         public List<OrderAddress> Addresses { get; set; }
     }
+    public class OrderStatusChartDto
+    {
+        public string Label { get; set; }
+        public int Count { get; set; }
+    }
+    public class DashboardStatsDto
+    {
+        public int TotalActiveProducts { get; set; }
+        public int TotalInactiveProducts { get; set; }
+        public int OnlinePayments { get; set; }
+        public int CodPayments { get; set; }
+    }
 }
