@@ -1,7 +1,8 @@
 ﻿@page "/counter"
 @inject IJSRuntime JS
 @inject HttpClient Http
-
+<Sidebar />
+<div style="margin-left: 240px;">
 <h2 style="text-align:center; color:black;">My Uploaded Products</h2>
 
 <div class="counter-box">
@@ -55,7 +56,7 @@ else
 
 
 }
-
+</div>
 <!-- Edit Modal -->
 @if (editingProduct != null)
 {

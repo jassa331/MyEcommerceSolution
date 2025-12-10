@@ -1,0 +1,418 @@
+﻿@page "/orders"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+@using System.Text.Json
+@using System.Linq
+<Sidebar />
+<div style="margin-left: 240px;">
+<h3 class="page-title">📦 My Orders</h3>
+
+@if (isLoading)
+{
+    <div class="loading-box">
+        <p>Loading your orders...</p>
+        <div class="spinner"></div>
+    </div>
+}
+else if (orders == null || !orders.Any())
+{
+    <p class="empty-text">You haven't placed any orders yet.</p>
+}
+else
+{
+    <div class="orders-wrapper">
+        @foreach (var order in orders)
+        {
+            <div class="order-card">
+
+                <div class="order-meta">
+                    <span><b>Order No:</b> @order.Order.OrderNumber</span>
+
+                    <span><b>Total:</b> ₹@order.Order.TotalAmount</span>
+
+                    <span class="status-info">
+                        <b>Order Status:</b>
+                        <span class="status-badge @(order.Order.OrderStatus.ToLower())">
+                            @order.Order.OrderStatus
+                        </span>
+                    </span>
+
+                    <span class="payment-info">
+                        <b>Payment Method:</b>
+                        <span class="pay-method @(order.Order.PaymentMethod?.ToLower())">
+                            @order.Order.PaymentMethod
+                        </span>
+                    </span>
+                </div>
+
+
+
+
+
+                <button class="btn-view" @onclick="() => ToggleDetails(order.Order.OrderId)">
+                    @(expandedOrders.Contains(order.Order.OrderId) ? "Hide Items" : "View Items")
+                </button>
+
+                @if (expandedOrders.Contains(order.Order.OrderId))
+                {
+                    <div class="details-section">
+
+                        <!-- Items Section -->
+                        <div class="items-box">
+                            <h4>🧾 Order Items</h4>
+                            @foreach (var item in order.Items)
+                            {
+                                <div class="item-row">
+                                    <img src="@GetImageUrl(item.ProductImage)" class="item-img" />
+                                    <div class="item-info">
+                                        <div class="item-name">@item.ProductName</div>
+                                        <div>₹@item.Price × @item.Quantity</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Address Section -->
+                        <div class="address-box">
+                            <h4>📍 Shipping Address</h4>
+
+                            @if (order.Addresses.Any())
+                            {
+                                var addr = order.Addresses.First();
+                                <div class="address-text">
+                                    @addr.AddressLine <br />
+                                    @addr.City, @addr.State <br />
+                                    @addr.ZipCode
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="address-text">No address provided</div>
+                            }
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        }
+    </div>
+}
+</div>
+
+<style>
+    .page-title {
+        text-align: center;
+        margin: 20px 0;
+        font-size: 26px;
+    }
+
+    .status-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        color: #fff;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+        .status-badge.new {
+            background-color: #000;
+        }
+
+        .status-badge.pending {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .status-badge.shipped {
+            background-color: #17a2b8;
+        }
+
+        .status-badge.delivered {
+            background-color: #28a745;
+        }
+
+        .status-badge.cancelled {
+            background-color: #dc3545;
+        }
+
+    .payment-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .pay-method {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        color: white;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+        .pay-method.cod {
+            background-color: #28a745;
+        }
+
+        .pay-method.online {
+            background-color: #007bff;
+        }
+
+    .orders-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+        padding: 20px;
+    }
+
+
+
+    .order-card {
+        width: 1000px;
+        max-width: 100%;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        padding: 25px;
+        overflow: visible;
+        word-wrap: break-word;
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .order-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #555;
+    }
+
+
+
+    .btn-view {
+        background: black;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+
+    .details-section {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 25px;
+        width: 100%;
+    }
+
+    .items-box, .address-box {
+        background: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: inset 0 0 0 1px #eee;
+        width: 100%;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .item-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .item-name {
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .address-text {
+        font-size: 14px;
+        line-height: 22px;
+        word-break: break-word;
+    }
+
+    .loading-box, .empty-text {
+        text-align: center;
+        margin-top: 60px;
+    }
+
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #333;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin: 20px auto;
+        animation: spin 1s linear infinite;
+    }
+</style>
+
+@code {
+
+    private bool isLoading = true;
+    private List<OrderFullDto> orders = new();
+    private HashSet<Guid> expandedOrders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            NavManager.NavigateTo("https://localhost:7291/", forceLoad: true);
+            return;
+        }
+
+        await LoadOrders(token);
+    }
+
+    private async Task LoadOrders(string token)
+    {
+        try
+        {
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.GetAsync("https://localhost:7255/api/Manage_orders/getallorders");
+
+            if (response.IsSuccessStatusCode)
+            {
+                orders = await response.Content.ReadFromJsonAsync<List<OrderFullDto>>(new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new();
+
+                foreach (var order in orders)
+                {
+                    foreach (var item in order.Items)
+                    {
+                        if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            item.ProductImage = item.ImageUrl;
+                        }
+                        else
+                        {
+                            item.ProductImage = "https://via.placeholder.com/80?text=No+Image";
+                        }
+                    }
+                }
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ToggleDetails(Guid orderId)
+    {
+        if (expandedOrders.Contains(orderId))
+            expandedOrders.Remove(orderId);
+        else
+            expandedOrders.Add(orderId);
+    }
+
+    private string GetImageUrl(string imageUrl) =>
+        string.IsNullOrEmpty(imageUrl)
+            ? "https://via.placeholder.com/80?text=No+Image"
+            : imageUrl;
+
+    // ✅ DTO Classes Matching Backend JSON
+
+    public class OrderFullDto
+    {
+        public Order Order { get; set; } = new();
+        public List<OrderItem> Items { get; set; } = new();
+        public List<OrderAddress> Addresses { get; set; } = new();
+    }
+
+    public class Order
+    {
+        public Guid OrderId { get; set; }
+        public string OrderStatus { get; set; } = "";
+        public decimal TotalAmount { get; set; }
+        public string OrderNumber { get; set; } = "";
+
+        public string PaymentStatus { get; set; } = "";
+        public string PaymentMethod { get; set; } = "";
+        // helper for UI
+        public string Status
+        {
+            get => OrderStatus;
+            set => OrderStatus = value;
+        }
+    }
+
+    public class OrderItem
+    {
+        public Guid OrderItemId { get; set; }
+        public string ProductName { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+
+        // UI helpers
+        public string ProductImage
+        {
+            get => ImageUrl;
+            set => ImageUrl = value;
+        }
+
+        public decimal Price
+        {
+            get => UnitPrice;
+            set => UnitPrice = value;
+        }
+    }
+
+    public class OrderAddress
+    {
+        public Guid OrderAddressId { get; set; }
+        public string Line1 { get; set; } = "";
+        public string City { get; set; } = "";
+        public string State { get; set; } = "";
+        public string PostalCode { get; set; } = "";
+
+        // UI helpers
+        public string AddressLine
+        {
+            get => Line1;
+            set => Line1 = value;
+        }
+
+        public string ZipCode
+        {
+            get => PostalCode;
+            set => PostalCode = value;
+        }
+    }
+}
