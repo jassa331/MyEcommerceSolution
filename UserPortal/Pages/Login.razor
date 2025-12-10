@@ -141,9 +141,9 @@
                     // ✅ Redirect properly
                     if (result.IsAdmin)
                     {
-                       // Navigation.NavigateTo($"https://localhost:7215/?token={result.Token}", forceLoad: true); // Admin portal
+                       Navigation.NavigateTo($"https://localhost:7215/?token={result.Token}", forceLoad: true); // Admin portal
 
-                        Navigation.NavigateTo($"https://localhost:7215/admin-dashboard", forceLoad: true); // Admin portal
+                        //Navigation.NavigateTo($"https://localhost:7215/admin-dashboard", forceLoad: true); // Admin portal
                     }
                     else
                     {

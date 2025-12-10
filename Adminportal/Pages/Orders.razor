@@ -25,6 +25,8 @@ else
         @foreach (var order in orders)
         {
             <div class="order-card">
+                    
+
 
                 <div class="order-meta">
                     <span><b>Order No:</b> @order.Order.OrderNumber</span>
@@ -44,6 +46,12 @@ else
                             @order.Order.PaymentMethod
                         </span>
                     </span>
+                        <a href="https://localhost:7255/api/Manage_orders/download-invoice/@order.Order.OrderId"
+                           target="_blank"
+                           class="btn-view"
+                           style="background:#91bd93">
+                            📄 Download Bill
+                        </a>
                 </div>
 
 
