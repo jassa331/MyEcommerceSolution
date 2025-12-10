@@ -14,6 +14,7 @@ namespace Admin.API.Controllers
 {   
     [Route("api/[controller]")]
     [ApiController]
+    [ApiLog]
     public class AccountController : ControllerBase
     {
         private readonly IConfiguration _configuration;

@@ -10,6 +10,7 @@ namespace Admin.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiLog]
     public class Manage_orders : ControllerBase
     {
         public readonly admindbcontext _orders;

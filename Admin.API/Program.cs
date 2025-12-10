@@ -34,7 +34,8 @@ builder.Services.AddCors(options =>
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var keyString = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured.");
 var keyBytes = Encoding.UTF8.GetBytes(keyString);
-
+using var scope = builder.Services.BuildServiceProvider().CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<admindbcontext>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
