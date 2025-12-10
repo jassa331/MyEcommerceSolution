@@ -3,200 +3,220 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 <Sidebar />
-<div style="margin-left: 240px;">
-<div class="update-product-container">
-    <h3>Update Product</h3>
+<div class="page-wrapper">
+    <div class="update-product-container">
+        <h3>Update Product</h3>
 
-    @if (product == null)
-    {
-        <p class="loading">Loading...</p>
-    }
-    else
-    {
-        <EditForm Model="@product" OnValidSubmit="HandleValidSubmit" class="product-form">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        @if (product == null)
+        {
+            <p class="loading">Loading...</p>
+        }
+        else
+        {
+            <EditForm Model="@product" OnValidSubmit="HandleValidSubmit" class="product-form">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-            <div class="form-group">
-                <label>Name</label>
-                <InputText class="form-control" @bind-Value="product.Name" placeholder="Enter product name" />
-            </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <InputText class="form-control" @bind-Value="product.Name" placeholder="Enter product name" />
+                </div>
 
-            <div class="form-group">
-                <label>Description</label>
-                <InputTextArea class="form-control" @bind-Value="product.Description" placeholder="Enter description" />
-            </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <InputTextArea class="form-control" @bind-Value="product.Description" placeholder="Enter description" />
+                </div>
 
-            <div class="form-group">
-                <label>Price</label>
-                <InputNumber class="form-control" @bind-Value="product.Price" placeholder="Enter price" />
-            </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <InputNumber class="form-control" @bind-Value="product.Price" placeholder="Enter price" />
+                </div>
 
-            <div class="form-group">
-                <label>Category</label>
-                <InputText class="form-control" @bind-Value="product.Category" placeholder="Enter category" />
-            </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <InputText class="form-control" @bind-Value="product.Category" placeholder="Enter category" />
+                </div>
 
-            <div class="form-group form-check">
-                <InputCheckbox class="form-check-input" @bind-Value="product.InStock" />
-                <label class="form-check-label">In Stock</label>
-            </div>
+                <div class="form-group form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="product.InStock" />
+                    <label class="form-check-label">In Stock</label>
+                </div>
 
-            <div class="form-buttons">
-                <button type="submit" class="btn btn-primary">Update</button>
-                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
-            </div>
-        </EditForm>
-    }
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                </div>
+            </EditForm>
+        }
+    </div>
 </div>
-</div>
+
 <style>
-/* ===== Premium Card Container ===== */
-.update-product-container {
-    max-width: 700px;
-    margin: 3rem auto;
-    padding: 2.5rem 2.5rem;
-    border-radius: 18px;
-    background: linear-gradient(145deg, #ffffff, #f1f3f6);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    font-family: "Poppins", "Segoe UI", sans-serif;
-    position: relative;
-    overflow: hidden;
-}
+    /* ===== Page Wrapper ===== */
+    .page-wrapper {
+        margin-left: 240px;
+        padding: 3rem 2rem;
+        background: #f7f8fa;
+        min-height: 100vh;
+    }
 
-/* Soft top accent bar */
-.update-product-container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 6px;
-    width: 100%;
-    background: linear-gradient(90deg, #27ae60, #2ecc71);
-}
+    /* ===== Update Product Container ===== */
+    .update-product-container {
+        max-width: 700px;
+        margin: auto;
+        padding: 3rem 2.5rem;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        font-family: "Poppins", "Segoe UI", sans-serif;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-/* ===== Title Styling ===== */
-.update-product-container h3 {
-    text-align: center;
-    margin-bottom: 2.5rem;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    letter-spacing: 0.5px;
-}
+        .update-product-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+        }
 
-/* ===== Loading Text ===== */
-.loading {
-    text-align: center;
-    color: #7f8c8d;
-    font-size: 1.2rem;
-}
+        /* Top accent bar */
+        .update-product-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
 
-/* ===== Form Layout ===== */
-.product-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-}
+        /* Title */
+        .update-product-container h3 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 0.5px;
+        }
 
-/* ===== Labels ===== */
-.product-form label {
-    font-weight: 600;
-    color: #34495e;
-    font-size: 0.95rem;
-    margin-bottom: 0.3rem;
-    display: inline-block;
-}
+    /* Loading text */
+    .loading {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 1.2rem;
+        font-style: italic;
+    }
 
-/* ===== Inputs & Textarea ===== */
-.product-form .form-control {
-    width: 100%;
-    padding: 0.85rem 1rem;
-    border-radius: 12px;
-    border: 1.5px solid #dcdde1;
-    font-size: 1rem;
-    background-color: #ffffff;
-    transition: all 0.25s ease;
-}
+    /* Form Layout */
+    .product-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
 
-/* Focus effect */
-.product-form .form-control:focus {
-    border-color: #27ae60;
-    box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.12);
-    outline: none;
-}
+        /* Labels */
+        .product-form label {
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
 
-/* Textarea */
-textarea.form-control {
-    min-height: 120px;
-    resize: vertical;
-}
+        /* Inputs */
+        .product-form .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            border: 1.5px solid #dcdde1;
+            font-size: 1rem;
+            background-color: #fafafa;
+            transition: all 0.3s ease;
+        }
 
-/* ===== Checkbox Section ===== */
-.product-form .form-check {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.4rem 0;
-}
+            .product-form .form-control:focus {
+                border-color: #27ae60;
+                box-shadow: 0 0 0 5px rgba(39, 174, 96, 0.15);
+                outline: none;
+            }
 
-.product-form .form-check-input {
-    width: 18px;
-    height: 18px;
-    accent-color: #27ae60;
-    cursor: pointer;
-}
+    /* Textarea */
+    textarea.form-control {
+        min-height: 140px;
+        resize: vertical;
+    }
 
-.product-form .form-check-label {
-    font-weight: 500;
-    color: #555;
-}
+    /* Checkbox */
+    .product-form .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+    }
 
-/* ===== Buttons Area ===== */
-.form-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-}
+    .product-form .form-check-input {
+        width: 20px;
+        height: 20px;
+        accent-color: #27ae60;
+        cursor: pointer;
+    }
 
-/* Base Button */
-button {
-    padding: 0.7rem 2rem;
-    border-radius: 14px;
-    border: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
+    .product-form .form-check-label {
+        font-weight: 500;
+        color: #555;
+    }
 
-/* Primary Button (Update) */
-button.btn-primary {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: #ffffff;
-}
+    /* Buttons */
+    .form-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
 
-button.btn-primary:hover {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 12px 26px rgba(39,174,96,0.3);
-}
+    button {
+        padding: 0.75rem 2.2rem;
+        border-radius: 18px;
+        border: none;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
 
-/* Secondary Button (Cancel) */
-button.btn-secondary {
-    background-color: #ecf0f1;
-    color: #2c3e50;
-}
+        /* Primary Button */
+        button.btn-primary {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: #ffffff;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
 
-button.btn-secondary:hover {
-    background-color: #dfe6e9;
-    transform: translateY(-2px) scale(1.01);
-}
+            button.btn-primary:hover {
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 15px 30px rgba(39,174,96,0.3);
+            }
 
-/* ===== Responsive ===== */
+        /* Secondary Button */
+        button.btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+            button.btn-secondary:hover {
+                background-color: #dfe6e9;
+                transform: translateY(-2px) scale(1.02);
+            }
+
+    /* Responsive */
+ 
 </style>
+
 
 
 @code {

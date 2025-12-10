@@ -1,0 +1,221 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<Sidebar />
+<div style="margin-left: 240px;">
+    <div class="dashboard-container">
+
+        <h2 class="dashboard-title">📊 Admin Dashboard</h2>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+
+            <div class="stat-card active">
+                <h6>Active Products</h6>
+                <h2>@stats?.TotalActiveProducts</h2>
+            </div>
+
+            <div class="stat-card inactive">
+                <h6>Inactive Products</h6>
+                <h2>@stats?.TotalInactiveProducts</h2>
+            </div>
+
+            <div class="stat-card online">
+                <h6>Online Payments</h6>
+                <h2>@stats?.OnlinePayments</h2>
+            </div>
+
+            <div class="stat-card cod">
+                <h6>COD Payments</h6>
+                <h2>@stats?.CodPayments</h2>
+            </div>
+
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+
+            <div class="chart-card">
+                <h5>Order Status</h5>
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h5>Payment Methods</h5>
+                <canvas id="paymentChart"></canvas>
+            </div>
+
+            <div class="chart-card full">
+                <h5>Products Overview</h5>
+                <canvas id="productChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+    body {
+        background: #f2f4f8;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .dashboard-container {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .dashboard-title {
+        text-align: center;
+        font-size: 34px;
+        font-weight: 800;
+        margin-bottom: 35px;
+        letter-spacing: 1px;
+    }
+
+    /* ----------- Stats Cards ---------- */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 22px;
+        text-align: center;
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            bottom: 0;
+            left: 0;
+            border-radius: 50px;
+        }
+
+    .active::after {
+        background: linear-gradient(to right, #43cea2, #185a9d);
+    }
+
+    .inactive::after {
+        background: linear-gradient(to right, #ff512f, #dd2476);
+    }
+
+    .online::after {
+        background: linear-gradient(to right, #2193b0, #6dd5ed);
+    }
+
+    .cod::after {
+        background: linear-gradient(to right, #f7971e, #ffd200);
+    }
+
+    .stat-card h6 {
+        font-size: 15px;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-card h2 {
+        font-size: 34px;
+        margin-top: 12px;
+        font-weight: bold;
+    }
+
+    /* ----------- Charts Layout ---------- */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 22px;
+        padding: 25px;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.05);
+        text-align: center;
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .chart-card canvas {
+            max-width: 260px !important;
+            max-height: 260px !important;
+            margin: auto;
+            display: block;
+        }
+
+        .chart-card.full {
+            grid-column: 1 / -1;
+            width: 100%;
+            height: 300px;
+        }
+
+        .chart-card h5 {
+            margin-bottom: 18px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+</style>
+
+@code {
+
+    private DashboardStatsDto? stats;
+    private List<OrderStatusChart> chartData = new();
+
+    public class DashboardStatsDto
+    {
+        public int TotalActiveProducts { get; set; }
+        public int TotalInactiveProducts { get; set; }
+        public int OnlinePayments { get; set; }
+        public int CodPayments { get; set; }
+    }
+
+    public class OrderStatusChart
+    {
+        public string Label { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        stats = await Http.GetFromJsonAsync<DashboardStatsDto>(
+            "https://localhost:7255/api/dashboard/stats");
+
+        chartData = await Http.GetFromJsonAsync<List<OrderStatusChart>>(
+            "https://localhost:7255/api/dashboard/order-status-chart");
+
+        await JS.InvokeVoidAsync("renderOrderStatusChart", chartData);
+        await JS.InvokeVoidAsync("renderPaymentChart",
+            stats!.OnlinePayments, stats!.CodPayments);
+        await JS.InvokeVoidAsync("renderProductChart",
+            stats!.TotalActiveProducts, stats!.TotalInactiveProducts);
+    }
+}

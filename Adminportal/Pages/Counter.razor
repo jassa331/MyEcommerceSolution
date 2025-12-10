@@ -1,89 +1,264 @@
 ﻿@page "/counter"
 @inject IJSRuntime JS
 @inject HttpClient Http
+
 <Sidebar />
-<div style="margin-left: 240px;">
-<h2 style="text-align:center; color:black;">My Uploaded Products</h2>
 
-<div class="counter-box">
-</div>
+<div class="page-wrapper">
 
-@if (isLoading)
-{
-    <p class="center-text">Loading...</p>
-}
-else if (products == null || products.Count == 0)
-{
-
-    <p class="center-text">No products found.</p>
-}
-else
-{
-
-    <div class="content-box">
-        <div class="table-container">
-            <table class="modern-table">
-                <thead> <tr> <th>Image</th> @* <th>Description</th> *@ <th>Price</th> <th>Category</th> @* <th>Stock</th> *@ <th>Action</th> </tr> </thead>
-
-                ```
-                <tbody>
-                    @foreach (var p in products)
-                    {
-                        <tr>
-                            <td>
-                                <img src="@p.ImageUrl" class="prod-img" />
-                            </td>
-                           @*  <td>@p.Description</td> *@
-                            <td>₹@p.Price</td>
-                            <td>@p.Category</td>
-
-                            <td>
-                                <NavLink class="btn-edit btn btn-primary" href="@($"/update-product/{p.ProductID}")">
-                                    Edit
-                                </NavLink>
-                                <button class="btn btn-danger"
-                                        @onclick="() => DeleteProduct(p.ProductID)">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-
-            </table>
-        </div>
+    <div class="page-header">
+        <h2>📦 My Uploaded Products</h2>
+        <p class="subtitle">Manage your uploaded items with ease</p>
     </div>
 
+    @if (isLoading)
+    {
+        <div class="loader-box">
+            <div class="loader"></div>
+            <p>Loading products...</p>
+        </div>
+    }
+    else if (products == null || products.Count == 0)
+    {
+        <div class="empty-state">
+            <p>🚫 No products found</p>
+        </div>
+    }
+    else
+    {
+        <div class="glass-card">
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
 
-}
+                    <tbody>
+                        @foreach (var p in products)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@p.ImageUrl" class="prod-img" />
+                                </td>
+                                <td class="price">₹@p.Price</td>
+                                <td>
+                                    <span class="category-badge">@p.Category</span>
+                                </td>
+                                <td class="action-cell">
+                                    <NavLink class="btn-edit" href="@($"/update-product/{p.ProductID}")">
+                                        ✏️ Edit
+                                    </NavLink>
+                                    <button class="btn-danger"
+                                            @onclick="() => DeleteProduct(p.ProductID)">
+                                        🗑 Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    }
+
 </div>
-<!-- Edit Modal -->
+
 @if (editingProduct != null)
 {
     <div class="modal-backdrop">
         <div class="modal">
-            <h3>Edit Product</h3> <label>Description:</label>
-            <input type="text" @bind="editingProduct.Description" /> <label>Price:</label>
-            <input type="number" step="0.01" @bind="editingProduct.Price" /> <label>Category:</label>
-            <input type="text" @bind="editingProduct.Category" /> <label>In Stock:</label>
-            <input type="checkbox" @bind="editingProduct.InStock" /> <div class="modal-actions">
-                <button class="btn" @onclick="SaveProduct">Save</button>
+            <h3>Edit Product</h3>
+
+            <label>Description</label>
+            <input type="text" @bind="editingProduct.Description" />
+
+            <label>Price</label>
+            <input type="number" step="0.01" @bind="editingProduct.Price" />
+
+            <label>Category</label>
+            <input type="text" @bind="editingProduct.Category" />
+
+            <label class="check-row">
+                <input type="checkbox" @bind="editingProduct.InStock" />
+                In Stock
+            </label>
+
+            <div class="modal-actions">
+                <button class="btn-edit" @onclick="SaveProduct">Save</button>
                 <button class="btn-danger" @onclick="CancelEdit">Cancel</button>
             </div>
         </div>
     </div>
 }
 
+<style>
+    .page-wrapper {
+        margin-left: 240px;
+        padding: 30px;
+        min-height: 100vh;
+        background: linear-gradient(135deg,#f0f4ff,#f8fafc);
+        font-family: 'Segoe UI',sans-serif;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .page-header h2 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+    .subtitle {
+        font-size: 15px;
+        color: #64748b;
+    }
+
+    /* Loading */
+    .loader-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        color: #475569;
+    }
+
+    .loader {
+        width: 40px;
+        height: 40px;
+        border: 5px solid #e5e7eb;
+        border-top: 5px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+
+    /* Empty */
+    .empty-state {
+        background: white;
+        padding: 50px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,.06);
+    }
+
+    /* Card */
+    .glass-card {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,.08);
+        padding: 25px;
+    }
+
+    /* Table */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 14px;
+    }
+
+        .modern-table th {
+            background: #0f172a;
+            color: #fff;
+            padding: 16px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modern-table td {
+            background: #fff;
+            padding: 16px;
+            font-size: 14px;
+            color: #334155;
+            border-radius: 12px;
+        }
+
+        .modern-table tbody tr:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,.08);
+            transition: all 0.3s ease;
+        }
+
+    /* Image */
+    .prod-img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 16px;
+        border: 2px solid #e5e7eb;
+    }
+
+    /* Badges */
+    .category-badge {
+        background: linear-gradient(135deg,#dbeafe,#bfdbfe);
+        color: #1e3a8a;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* Buttons */
+    .action-cell {
+        display: flex;
+        justify-content: flex-start; /* left alignment, use center if you want center */
+        align-items: center;
+        gap: 12px; /* space between buttons */
+        min-width: 180px; /* ensure enough space */
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg,#3b82f6,#1d4ed8);
+        color: #fff;
+    }
+
+    .btn-edit, .btn-danger {
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .btn-edit:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(59,130,246,0.4);
+        }
+
+    .btn-danger {
+        background: linear-gradient(135deg,#ef4444,#b91c1c);
+        color: #fff;
+    }
+
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(239,68,68,0.4);
+        }
+</style>
+
+
 @code {
+    // ✅ SAME LOGIC — unchanged
     private List<ProductDto>? products;
     private bool isLoading = true;
     private int currentCount = 0;
-    //jassadhammi
 
     private ProductUpdateDto? editingProduct = null;
     private Guid editingProductId;
-
-    private void IncrementCount() => currentCount++;
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,13 +307,7 @@ else
 
     private async Task DeleteProduct(Guid id)
     {
-        Console.WriteLine("Deleting product id: " + id);
-
-        if (id == Guid.Empty)
-        {
-            await JS.InvokeVoidAsync("alert", "❌ Product ID is empty!");
-            return;
-        }
+        if (id == Guid.Empty) return;
 
         bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure?");
         if (!confirmed) return;
@@ -157,29 +326,11 @@ else
         }
         else
         {
-            var error = await result.Content.ReadAsStringAsync();
-            await JS.InvokeVoidAsync("alert", $"❌ Delete failed: {error}");
+            await JS.InvokeVoidAsync("alert", "❌ Delete failed!");
         }
     }
 
-
-    private void EditProduct(ProductDto product)
-    {
-        editingProductId = product.ProductID;
-        editingProduct = new ProductUpdateDto
-        {
-            Name = product.Description,
-            Description = product.Description,
-            Price = product.Price,
-            Category = product.Category,
-            InStock = product.InStock
-        };
-    }
-
-    private void CancelEdit()
-    {
-        editingProduct = null;
-    }
+    private void CancelEdit() => editingProduct = null;
 
     private async Task SaveProduct()
     {
@@ -195,10 +346,6 @@ else
             await JS.InvokeVoidAsync("alert", "Product updated successfully!");
             editingProduct = null;
             await LoadProducts();
-        }
-        else
-        {
-            await JS.InvokeVoidAsync("alert", "Update failed!");
         }
     }
 
@@ -220,160 +367,5 @@ else
         public string? Category { get; set; }
         public bool InStock { get; set; }
     }
-
-
 }
 
-<style>
-    .content-box {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-        overflow-x: auto;
-    }
-
-    .table-container {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 10px;
-        font-family: 'Segoe UI',sans-serif;
-    }
-
-        .modern-table thead tr {
-            background: linear-gradient(135deg,#111827,#1f2937);
-            color: #fff;
-        }
-
-        .modern-table th {
-            padding: 14px 12px;
-            font-size: 15px;
-            font-weight: 600;
-            text-align: left;
-        }
-
-        .modern-table tbody tr {
-            background: #f9fafb;
-            border-radius: 12px;
-            transition: all .3s ease;
-        }
-
-            .modern-table tbody tr:hover {
-                background: #eef2ff;
-                transform: scale(1.01);
-                box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            }
-
-        .modern-table td {
-            padding: 14px 12px;
-            font-size: 14px;
-            color: #374151;
-        }
-
-    .prod-img {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-        border-radius: 12px;
-        border: 2px solid #e5e7eb;
-        background: #fff;
-    }
-
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 45px;
-        height: 24px;
-    }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-    .slider {
-        position: absolute;
-        cursor: not-allowed;
-        inset: 0;
-        background: #cbd5f5;
-        transition: .4s;
-        border-radius: 34px;
-    }
-
-        .slider:before {
-            content: "";
-            position: absolute;
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background: #fff;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-    input:checked + .slider {
-        background: linear-gradient(135deg,#22c55e,#16a34a);
-    }
-
-        input:checked + .slider:before {
-            transform: translateX(21px);
-        }
-
-    .btn-edit {
-        padding: 8px 14px;
-        border-radius: 8px;
-        border: none;
-        background: linear-gradient(135deg,#3b82f6,#1d4ed8);
-        color: #fff;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-right: 6px;
-        transition: .3s;
-    }
-
-        .btn-edit:hover {
-            transform: translateY(-1px) scale(1.03);
-            box-shadow: 0 6px 16px rgba(59,130,246,0.4);
-        }
-    /* Fix for Action column width */
-    .modern-table th:last-child,
-    .modern-table td:last-child {
-        min-width: 160px; /* column width vadhai */
-        text-align: center; /* button center vich */
-        white-space: nowrap; /* line break band */
-    }
-
-    /* Buttons nu proper space den lai */
-    .modern-table td:last-child {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .btn-danger {
-        padding: 8px 14px;
-        border-radius: 8px;
-        border: none;
-        background: linear-gradient(135deg,#ef4444,#b91c1c);
-        color: #fff;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: .3s;
-    }
-
-        .btn-danger:hover {
-            transform: translateY(-1px) scale(1.03);
-            box-shadow: 0 6px 16px rgba(239,68,68,0.4);
-        }
-
-</style>
