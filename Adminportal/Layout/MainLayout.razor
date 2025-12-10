@@ -5,15 +5,65 @@
     </div>
 
     <main>
-   
-        <div class="top-row px-4">
-        <h1 style="color:black">         Dhammi'sAdminPortal            </h1>
-           
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+    <div class="header-center black-box">
+        <img src="images/logo.png" alt="Logo" />
+        <h3>Dhammi’s E-Shop Admin Portal</h3>
+    </div>
+
 
         <article class="content px-4">
             @Body
         </article>
     </main>
 @* </div> *@
+<style>
+    /* Black background box */
+    .black-box {
+        background-color: white;
+        padding: 15px 30px;
+        border-radius: 15px;
+        box-shadow: lightgrey;
+    }
+
+    /* Center content */
+    .header-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin: 15px 0 25px 0;
+    }
+
+        /* Logo style */
+        .header-center img {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: black;
+            padding: 4px;/*jassa*/
+        }
+
+        /* Text style */
+        .header-center h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color:black; /* White text looks best on black */
+            letter-spacing: 0.5px;
+        }
+
+</style>
+
+@code {
+    [Inject] NavigationManager NavManager { get; set; }
+    [Inject] IJSRuntime JS { get; set; }
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        await JS.InvokeVoidAsync("localStorage.removeItem", "userId");
+        NavManager.NavigateTo("/");
+    }
+}
+

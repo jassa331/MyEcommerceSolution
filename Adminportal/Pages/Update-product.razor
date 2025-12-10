@@ -1,0 +1,287 @@
+﻿@page "/update-product/{ProductID:guid}"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+<Sidebar />
+<div class="page-wrapper">
+    <div class="update-product-container">
+        <h3>Update Product</h3>
+
+        @if (product == null)
+        {
+            <p class="loading">Loading...</p>
+        }
+        else
+        {
+            <EditForm Model="@product" OnValidSubmit="HandleValidSubmit" class="product-form">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <label>Name</label>
+                    <InputText class="form-control" @bind-Value="product.Name" placeholder="Enter product name" />
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <InputTextArea class="form-control" @bind-Value="product.Description" placeholder="Enter description" />
+                </div>
+
+                <div class="form-group">
+                    <label>Price</label>
+                    <InputNumber class="form-control" @bind-Value="product.Price" placeholder="Enter price" />
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <InputText class="form-control" @bind-Value="product.Category" placeholder="Enter category" />
+                </div>
+
+                <div class="form-group form-check">
+                    <InputCheckbox class="form-check-input" @bind-Value="product.InStock" />
+                    <label class="form-check-label">In Stock</label>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+<style>
+    /* ===== Page Wrapper ===== */
+    .page-wrapper {
+        margin-left: 240px;
+        padding: 3rem 2rem;
+        background: #f7f8fa;
+        min-height: 100vh;
+    }
+
+    /* ===== Update Product Container ===== */
+    .update-product-container {
+        max-width: 700px;
+        margin: auto;
+        padding: 3rem 2.5rem;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        font-family: "Poppins", "Segoe UI", sans-serif;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .update-product-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+        }
+
+        /* Top accent bar */
+        .update-product-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+
+        /* Title */
+        .update-product-container h3 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 0.5px;
+        }
+
+    /* Loading text */
+    .loading {
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 1.2rem;
+        font-style: italic;
+    }
+
+    /* Form Layout */
+    .product-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+        /* Labels */
+        .product-form label {
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Inputs */
+        .product-form .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 14px;
+            border: 1.5px solid #dcdde1;
+            font-size: 1rem;
+            background-color: #fafafa;
+            transition: all 0.3s ease;
+        }
+
+            .product-form .form-control:focus {
+                border-color: #27ae60;
+                box-shadow: 0 0 0 5px rgba(39, 174, 96, 0.15);
+                outline: none;
+            }
+
+    /* Textarea */
+    textarea.form-control {
+        min-height: 140px;
+        resize: vertical;
+    }
+
+    /* Checkbox */
+    .product-form .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+    }
+
+    .product-form .form-check-input {
+        width: 20px;
+        height: 20px;
+        accent-color: #27ae60;
+        cursor: pointer;
+    }
+
+    .product-form .form-check-label {
+        font-weight: 500;
+        color: #555;
+    }
+
+    /* Buttons */
+    .form-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    button {
+        padding: 0.75rem 2.2rem;
+        border-radius: 18px;
+        border: none;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+        /* Primary Button */
+        button.btn-primary {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: #ffffff;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+            button.btn-primary:hover {
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 15px 30px rgba(39,174,96,0.3);
+            }
+
+        /* Secondary Button */
+        button.btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+            button.btn-secondary:hover {
+                background-color: #dfe6e9;
+                transform: translateY(-2px) scale(1.02);
+            }
+
+    /* Responsive */
+ 
+</style>
+
+
+
+@code {
+    [Parameter]
+    public Guid ProductId { get; set; }
+
+    private ProductUpdateDto? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        try
+        {
+            product = await Http.GetFromJsonAsync<ProductUpdateDto>($"https://localhost:7255/api/Product/get/{ProductId}");
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("alert", "Failed to load product.");
+            Navigation.NavigateTo("/counter");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (product == null) return;
+
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.PutAsJsonAsync($"https://localhost:7255/api/Product/update-PRODUCTS/{ProductId}", product);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "✅ Product updated successfully!");
+                Navigation.NavigateTo("/counter");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", $"❌ Update failed: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"❌ Exception: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/counter");
+    }
+
+    public class ProductUpdateDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string Category { get; set; } = string.Empty;
+        public bool InStock { get; set; }
+    }
+}

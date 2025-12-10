@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/my-products"
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
@@ -10,7 +10,7 @@
     <Sidebar />
 
     <div class="main-content">
-        <h1 style="color:black">Your Cart Items</h1>
+        
 
         <div class="login-boxx">
             <h2 style="color:black;">Add Product</h2>
@@ -25,7 +25,15 @@
             <input type="number" placeholder="Price" @bind="product.Price" />
 
             <label style="color:black;">Category</label>
-            <input type="text" placeholder="Category" @bind="product.Category" />
+            <select @bind="product.Category" class="form-control">
+                <option value="">-- Select Category --</option>
+                @foreach (var c in CategoryList)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+
+
 
             <label style="color:black;">Select Product Image</label>
             <InputFile OnChange="OnFileSelected" />
@@ -177,6 +185,15 @@
         else
             await JS.InvokeVoidAsync("alert", $"❌ Upload failed!\n{response.StatusCode}: {msg}");
     }
+    List<string> CategoryList = new()
+{
+    "Electronics",
+    "Fashion",
+    "Sports",
+    "Home Appliances",
+    "Books & Stationery",
+    "Beauty & Personal Care"
+};
 
 
     private class Product

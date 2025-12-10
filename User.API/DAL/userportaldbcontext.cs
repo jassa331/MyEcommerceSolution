@@ -18,10 +18,14 @@ namespace User.API.DAL
         public DbSet<OrderAddress> OrderAddresses { get; set; }
         public DbSet<OrderPayment> OrderPayments { get; set; }
         public DbSet<UsersProfile> userr { get; set; }
+        public DbSet<SELLERFOAM> seller { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<SELLERFOAM>()
+                  .Property(s => s.SellerId)
+                  .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Order>()
                 .HasMany(o => o.OrderPayments)

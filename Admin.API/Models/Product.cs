@@ -23,6 +23,8 @@ namespace Admin.API.NewFolder
             public bool InStock { get; set; }
 
             public string? ImageUrl { get; set; }
+        public bool IsDeleted { get; set; }
+        public bool IsActive { get; set; }
         public Guid Usersid { get;  set; }
     }
 

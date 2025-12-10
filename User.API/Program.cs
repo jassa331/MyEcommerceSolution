@@ -5,6 +5,9 @@ using System.Text;
 using User.API.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
+ 
+
+
 
 // Add services to the container
 
@@ -13,6 +16,9 @@ builder.Services.AddControllers();
 // ? Configure DB context (uncomment and fix connection string if needed)
 builder.Services.AddDbContext<userportaldbcontext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var stripeSettings = builder.Configuration.GetSection("Stripe");
+Stripe.StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
+
 
 // ? Configure JWT authentication
 
@@ -79,11 +85,15 @@ var app = builder.Build();
 
 // Configure middleware pipeline
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI(c =>
+//    {
+//        c.InjectJavascript("/swagger-fix.js");
+//    });
+
+//}
 
 app.UseHttpsRedirection();
 
@@ -92,6 +102,11 @@ app.UseCors("AllowAll");
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{   
+    c.InjectJavascript("/swagger-fix.js");
+});
 
 app.MapControllers();
 

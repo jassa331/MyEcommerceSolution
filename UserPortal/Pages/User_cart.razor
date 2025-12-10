@@ -58,9 +58,16 @@ else
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 20px;
         padding: 20px;
+        justify-items: center; /* Center items even if there's only 1 */
     }
 
+
     .cart-card {
+        .cart-card {
+            max-width: 300px; /* optional */
+            width: 100%;
+        
+
         background: #fff;
         border-radius: 10px;
         padding: 15px;

@@ -1,4 +1,5 @@
 ﻿@page "/user_checkout"
+@using System.Text.Json
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
@@ -44,8 +45,18 @@ else
             <input placeholder="City" @bind="address.City" />
             <input placeholder="Postal Code" @bind="address.PostalCode" />
             <input placeholder="Phone" @bind="address.Phone" />
-
-            <button @onclick="PlaceOrder" class="btn-place">Place Order</button>
+             <div class="cod-container">
+    <input type="checkbox" @bind="isCashOnDelivery" id="codCheckbox" />
+    <label for="codCheckbox">Cash on Delivery</label>
+</div>
+         @if (isCashOnDelivery)
+    {
+        <button @onclick="PlaceOrder" class="btn-place">Place Order</button>
+    }
+    else
+    {
+        <button @onclick="PayOnline" class="btn-place">Pay Online (Stripe)</button>
+    }
         </div>
     </div>
 }
@@ -64,6 +75,32 @@ else
         gap: 20px;
         padding: 20px;
     }
+    .cod-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;  /* space between checkbox and label */
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* make checkbox a bit bigger and nicer */
+.cod-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: skyblue; /* nice green color for checked state */
+}
+
+/* optional: hover effect on label */
+.cod-container label {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.cod-container label:hover {
+    color: #4CAF50;
+}
 
     .cart-summary, .address-form {
         background: #fff;
@@ -137,6 +174,321 @@ else
     {
         await LoadCart();
     }
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var item = cartItems.First();
+
+    //         var request = new
+    //         {
+    //             OrderId = item.CartItemID,
+    //             Amount = item.Price * item.Quantity,
+    //             ProductName = item.Name
+    //         };
+
+    //         var response =  await Http.PostAsJsonAsync("api/Payment/CreateCheckoutSession",
+    // new
+    // {
+    //     ProductName = "Test",
+    //     Amount = 100
+    // });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+    //         var url = data["url"];
+
+    //         if (string.IsNullOrWhiteSpace(url))
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+    //             return;
+    //         }
+
+    //         // 🔥 FIX: Proper redirect to Stripe
+    //         await JS.InvokeVoidAsync("eval", $"window.location.href='{url}'");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var response = await Http.PostAsJsonAsync(
+    //             "api/Payment/CreateCheckoutSession",
+    //             new
+    //             {
+    //                 ProductName = "Test",
+    //                 Amount = 100
+    //             });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+    //         var url = data["url"];
+
+    //         if (string.IsNullOrWhiteSpace(url))
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+    //             return;
+    //         }
+
+    //         // 🔥 FINAL FIX – correct redirection
+    //         await JS.InvokeVoidAsync("open", url, "_self");
+    //         // or: await JS.InvokeVoidAsync("open", url, "_blank");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var response = await Http.PostAsJsonAsync(
+    //             "api/Payment/create-checkout-session",
+    //             new
+    //             {
+    //                 orderId = Guid.NewGuid(),
+    //                 amount = 100,
+    //                 productName = "Test"
+    //             });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var options = new JsonSerializerOptions
+    //         {
+    //             PropertyNameCaseInsensitive = true
+    //         };
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(options);
+
+    //         var url = data["url"]; // stripe checkout url
+
+    //         await JS.InvokeVoidAsync("redirectToStripe", url);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+    // private async Task PayOnline()
+    // {
+    //     var response = await Http.PostAsJsonAsync(
+    //         "api/Payment/create-checkout-session",
+    //         new { amount = 100, productName = "Test" }
+    //     );
+
+    //     // var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+    //     // var url = result["url"];
+
+    //     // await JS.InvokeVoidAsync("redirectToStripe", url);
+    //     var result = await Http.PostAsJsonAsync("create-checkout-session", new { });
+    //     var data = await result.Content.ReadFromJsonAsync<CheckoutResponse>();
+
+    //     await JS.InvokeVoidAsync("redirectToStripe", data.url);
+
+    // }
+    //  private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         if (cartItems == null || !cartItems.Any())
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Cart empty!");
+    //             return;
+    //         }
+
+    //         var firstItem = cartItems.First();
+
+    //         var orderResponse = await Http.PostAsJsonAsync("api/Orders/Create", new
+    //         {
+    //             cartItemId = firstItem.CartItemID,
+    //             shippingAmount = 0,
+    //             taxAmount = 0,
+    //             fullName = address.FullName,
+    //             line1 = address.Line1,
+    //             city = address.City,
+    //             postalCode = address.PostalCode,
+    //             country = "India",
+    //             phone = address.Phone,
+    //             paymentMethod = "Stripe"
+    //         });
+
+    //         if (!orderResponse.IsSuccessStatusCode)
+    //         {
+    //             var err = await orderResponse.Content.ReadAsStringAsync();
+    //             await JS.InvokeVoidAsync("alert", "Order failed: " + err);
+    //             return;
+    //         }
+
+    //         var orderData = await orderResponse.Content.ReadFromJsonAsync<OrderCreateResponse>();
+
+    //         if (orderData == null)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Order response invalid!");
+    //             return;
+    //         }
+
+    //         var stripeResponse = await Http.PostAsJsonAsync("api/Payment/create-checkout-session", new
+    //         {
+    //             orderId = orderData.orderId,
+    //             amount = orderData.total,
+    //             productName = "Cart Order"
+    //         });
+
+    //         var stripeData = await stripeResponse.Content.ReadFromJsonAsync<CheckoutResponse>();
+
+    //         if (!string.IsNullOrEmpty(stripeData?.url))
+    //         {
+    //             await JS.InvokeVoidAsync("redirectToStripe", stripeData.url);
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
+
+
+    private void SelectCartItem(Guid id)
+    {
+        selectedCartItemId = id;
+        JS.InvokeVoidAsync("alert", "Selected Product ✅");
+    }
+    private bool isCashOnDelivery = false;
+    private async Task PayOnline()
+{
+      Console.WriteLine("Pay Online clicked");
+    try
+    {
+        if (cartItems == null || !cartItems.Any())
+        {
+            await JS.InvokeVoidAsync("alert", "Cart empty!");
+            return;
+        }
+
+        decimal grandTotal = 0;
+
+        // ✅ Step 1: create order for every cart item
+        Guid lastOrderId = Guid.Empty;
+
+        foreach (var item in cartItems)
+        {
+            var orderResponse = await Http.PostAsJsonAsync("api/Orders/Create", new
+            {
+                cartItemId = item.CartItemID,
+                shippingAmount = 50,
+                taxAmount = 12.5,
+                fullName = address.FullName,
+                line1 = address.Line1,
+                city = address.City,
+                postalCode = address.PostalCode,
+                country = "India",
+                phone = address.Phone,
+                paymentMethod = "Online"
+            });
+
+            if (!orderResponse.IsSuccessStatusCode)
+            {
+                var err = await orderResponse.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("alert", "Order failed: " + err);
+                return;
+            }
+
+            var orderData = await orderResponse.Content.ReadFromJsonAsync<OrderCreateResponse>();
+            lastOrderId = orderData!.orderId;
+            grandTotal += orderData.total;
+        }
+
+        // ✅ Step 2: single Stripe payment for all items combined
+        var stripeResponse = await Http.PostAsJsonAsync(
+            "api/Payment/create-checkout-session",
+            new
+            {
+                orderId = lastOrderId,
+                amount = grandTotal,
+                productName = "Full Cart Order"
+            });
+
+        var stripeData = await stripeResponse.Content.ReadFromJsonAsync<CheckoutResponse>();
+
+        if (!string.IsNullOrWhiteSpace(stripeData?.url))
+        {
+            await JS.InvokeVoidAsync("redirectToStripe", stripeData.url);
+        }
+    }
+    catch (Exception ex)
+    {
+        await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    }
+}
+
+
+
+
+
+
+
+
+    // private async Task PayOnline()
+    // {
+    //     try
+    //     {
+    //         var response = await Http.PostAsJsonAsync(
+    //             "https://localhost:7117/api/Payment/create-checkout-session",
+    //             new
+    //             {
+    //                 orderId = Guid.NewGuid(),
+    //                 amount = 100,
+    //                 productName = "Test"
+    //             });
+
+    //         if (!response.IsSuccessStatusCode)
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe session creation failed!");
+    //             return;
+    //         }
+
+    //         var options = new JsonSerializerOptions
+    //         {
+    //             PropertyNameCaseInsensitive = true
+    //         };
+
+    //         var data = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>(options);
+    //         var url = data["url"];
+
+    //         if (string.IsNullOrWhiteSpace(url))
+    //         {
+    //             await JS.InvokeVoidAsync("alert", "Stripe returned empty checkout URL!");
+    //             return;
+    //         }
+
+    //         // 🔥 Safe redirect (no exception)
+    //         await JS.InvokeVoidAsync("redirectToStripe", url);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+    //     }
+    // }
 
     private async Task LoadCart()
     {
@@ -175,6 +527,7 @@ else
 
     private async Task PlaceOrder()
     {
+          Console.WriteLine("Place Order clicked");
         try
         {
             var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
@@ -258,6 +611,22 @@ else
         public int Quantity { get; set; }
         public string ImageUrl { get; set; } = "";
     }
+    @code {
+   private Guid selectedCartItemId;
+
+private string fullName = "";
+private string addressLine1 = "";
+private string addressLine2 = "";
+private string city = "";
+private string state = "";
+private string postalCode = "";
+private string country = "India";
+private string phone = "";
+
+private decimal shippingAmount = 0;
+private decimal taxAmount = 0;
+
+}
 
     public class OrderAddress
     {
@@ -266,6 +635,16 @@ else
         public string City { get; set; } = "";
         public string PostalCode { get; set; } = "";
         public string Phone { get; set; } = "";
+    }
+    public class OrderCreateResponse
+    {
+        public Guid orderId { get; set; }
+        public decimal total { get; set; }
+    }
+
+    public class CheckoutResponse
+    {
+        public string url { get; set; }
     }
 
     public class CreateOrderRequest
@@ -284,6 +663,19 @@ else
         public string Country { get; set; } = "India";
         public string Phone { get; set; } = "";
     }
+    public class StripeCheckoutRequest
+    {
+        public decimal Amount { get; set; }
+        public string ProductName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+    }
+
+    // public class CheckoutResponse
+    // {
+    //     public string url { get; set; }
+    // }
+
 }
 
 @* @page "/user_checkout"

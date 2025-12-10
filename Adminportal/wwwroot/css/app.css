@@ -9,6 +9,17 @@ h1:focus {
 a, .btn-link {
     color: #0071c1;
 }
+@media(max - width:768px) {
+    .prod-img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .modern-table th, .modern-table td {
+        font-size: 13px;
+        padding: 10px 8px;
+    }
+}
 
 .btn-primary {
     color: #fff;
