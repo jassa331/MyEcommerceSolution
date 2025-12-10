@@ -6,6 +6,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using QuestPDF;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +36,8 @@ builder.Services.AddCors(options =>
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var keyString = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured.");
 var keyBytes = Encoding.UTF8.GetBytes(keyString);
-
+using var scope = builder.Services.BuildServiceProvider().CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<admindbcontext>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -131,6 +134,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+QuestPDF.Settings.License = LicenseType.Community;
 
 // ✅ Swagger UI (Only in Development)
 //if (app.Environment.IsDevelopment())

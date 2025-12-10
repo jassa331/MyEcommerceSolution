@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
 using System.Linq;
 
 namespace Admin.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiLog]
     public class Manage_orders : ControllerBase
     {
         public readonly admindbcontext _orders;
@@ -61,7 +63,27 @@ namespace Admin.API.Controllers
                 return StatusCode(500, "Something went wrong.");
             }
         }
+        [HttpGet("download-invoice/{orderId}")]
+        public async Task<IActionResult> DownloadInvoice(Guid orderId)
+        {
+            var order = await _orders.Orders
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
 
+            if (order == null)
+                return NotFound();
+
+            var items = await _orders.OrderItems
+                .Where(i => i.OrderId == orderId)
+                .ToListAsync();
+
+            var address = await _orders.OrderAddresses
+                .FirstOrDefaultAsync(a => a.OrderId == orderId);
+
+            var doc = new InvoiceDocument(order, items, address);
+            byte[] pdfBytes = doc.GeneratePdf();
+
+            return File(pdfBytes, "application/pdf", $"Invoice-{order.OrderNumber}.pdf");
+        }
 
     }
 }

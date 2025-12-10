@@ -11,6 +11,8 @@ namespace Admin.API.Controllers
     [ApiController]
    // [Authorize(Policy = "AdminOnly")]
     [Route("api/[controller]")]
+    [ApiLog]
+
     [Authorize] // Protects all endpoints
    // [Authorize(Policy = "AdminOnly")]
     public class ProductController : ControllerBase

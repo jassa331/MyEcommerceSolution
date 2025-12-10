@@ -9,6 +9,7 @@ namespace Admin.API.Controllers
 {
     [Route("api/dashboard")]
     [ApiController]
+    [ApiLog]
     public class DashboardController : ControllerBase
     {
         private readonly admindbcontext _context;
