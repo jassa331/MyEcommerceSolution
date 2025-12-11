@@ -1,7 +1,11 @@
-﻿namespace Admin.API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Admin.API.Models
 {
+
     public class manageorders
     {
+        [Key]
         public Guid OrderId { get; set; }
         public Guid Usersid { get; set; }
         public Guid AppUserId { get; set; }
@@ -71,5 +75,11 @@
         public int TotalInactiveProducts { get; set; }
         public int OnlinePayments { get; set; }
         public int CodPayments { get; set; }
+    }
+    public class UpdateStatusDto
+    {
+        public string OrderStatus { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
     }
 }

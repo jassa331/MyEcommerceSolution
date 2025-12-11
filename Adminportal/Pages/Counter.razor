@@ -32,6 +32,7 @@
                     <thead>
                         <tr>
                             <th>Image</th>
+                            <th>Product Name</th>
                             <th>Price</th>
                             <th>Category</th>
                             <th>Action</th>
@@ -45,15 +46,19 @@
                                 <td>
                                     <img src="@p.ImageUrl" class="prod-img" />
                                 </td>
+                                <td class="name-column">@p.Name</td>
+
+
+
                                 <td class="price">₹@p.Price</td>
                                 <td>
                                     <span class="category-badge">@p.Category</span>
                                 </td>
                                 <td class="action-cell">
                                     <NavLink class="btn-edit" href="@($"/update-product/{p.ProductID}")">
-                                        ✏️ Edit
+                                        __✏️ Edit
                                     </NavLink>
-                                    <button class="btn-danger"
+                                    <button class="btn-edit"
                                             @onclick="() => DeleteProduct(p.ProductID)">
                                         🗑 Delete
                                     </button>
@@ -122,6 +127,22 @@
         color: #64748b;
     }
 
+    .name-column {
+        width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: border-box; /* ensures clean width */
+    }
+
+
+    .element {
+        width: 200px; /* includes padding + border */
+        padding: 20px;
+        border: 2px solid red;
+        box-sizing: border-box; /* recommended */
+    }
+
     /* Loading */
     .loader-box {
         display: flex;
@@ -161,18 +182,17 @@
 
     /* Table */
     .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 14px;
+        width: unset;
+        border-collapse: inherit;
+        border-spacing: 05px;
     }
 
         .modern-table th {
             background: #0f172a;
             color: #fff;
-            padding: 16px;
+            padding: 7px;
             font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 3px;
         }
 
         .modern-table td {
@@ -213,14 +233,14 @@
     /* Buttons */
     .action-cell {
         display: flex;
-        justify-content: flex-start; /* left alignment, use center if you want center */
-        align-items: center;
-        gap: 12px; /* space between buttons */
-        min-width: 180px; /* ensure enough space */
+        gap: 40px;
+        min-width: revert;
+        flex-direction: row-reverse;
+        align-items: baseline;
     }
 
     .btn-edit {
-        background: linear-gradient(135deg,#3b82f6,#1d4ed8);
+        background: linear-gradient(135deg,#5287e3,#5287e3);
         color: #fff;
     }
 
@@ -236,7 +256,7 @@
 
         .btn-edit:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(59,130,246,0.4);
+            box-shadow: white;
         }
 
     .btn-danger {
@@ -352,6 +372,7 @@
     public class ProductDto
     {
         public Guid ProductID { get; set; }
+        public string Name { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public string? Category { get; set; }
@@ -368,4 +389,3 @@
         public bool InStock { get; set; }
     }
 }
-

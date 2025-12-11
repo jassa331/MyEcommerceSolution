@@ -107,11 +107,13 @@ namespace Admin.API.Controllers
                 return Unauthorized("Invalid or missing UserId claim.");
 
             var products = await _context.Products
-                .Where(p => p.Usersid == userId && !p.IsDeleted)
+.Where(p => p.Usersid == userId && p.IsDeleted == false && p.IsActive == true)
+
                 .ToListAsync();
 
             return Ok(products);
         }
+
 
         // ✅ 4. Update Product (Owner only)
         [HttpPut("update-PRODUCTS/{id}")]

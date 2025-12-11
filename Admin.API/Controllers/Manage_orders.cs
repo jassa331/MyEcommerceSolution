@@ -63,6 +63,43 @@ namespace Admin.API.Controllers
                 return StatusCode(500, "Something went wrong.");
             }
         }
+        [HttpPut("update-order-status/{orderId}")]
+        public async Task<IActionResult> UpdateOrderStatus(Guid orderId, [FromBody] UpdateStatusDto dto)
+        {
+            try
+            {
+                var order = await _orders.Orders.FirstOrDefaultAsync(x => x.OrderId == orderId);
+
+                if (order == null)
+                    return NotFound("Order not found");
+
+                var validStatus = new List<string> { "Pending", "Shipped", "Delivered", "Cancelled" };
+
+                if (!validStatus.Contains(dto.OrderStatus))
+                    return BadRequest("Invalid status");
+
+                // Update fields
+                order.OrderStatus = dto.OrderStatus;
+                order.UpdatedAt = DateTime.UtcNow;
+
+                if (dto.OrderStatus == "Delivered")
+                    order.PaymentStatus = "Paid";
+
+                if (dto.OrderStatus == "Cancelled")
+                    order.IsActive = false;
+
+                await _orders.SaveChangesAsync();
+
+                return Ok(new { Message = "Order status updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Something went wrong");
+            }
+        }
+
+
+
         [HttpGet("download-invoice/{orderId}")]
         public async Task<IActionResult> DownloadInvoice(Guid orderId)
         {

@@ -64,46 +64,60 @@ namespace User.Controllers
         [HttpPost("Create")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
         {
-            var userIdClaim = User.FindFirstValue("UserId");
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Unauthorized("User ID missing in token.");
-
-            Guid userId = Guid.Parse(userIdClaim);
-
-            // 🛒 Fetch Cart Item
-            var cartItem = await _context.CartItems
-                .FirstOrDefaultAsync(c => c.CartItemID == request.CartItemId && c.Appuserid == userId);
-
-            if (cartItem == null)
-                return BadRequest("Invalid or missing cart item.");
-
-            // 🧾 Calculate totals
-            decimal subTotal = cartItem.Price * cartItem.Quantity;
-            decimal total = subTotal + request.ShippingAmount + request.TaxAmount;
-
-            // 🧾 Create Main Order
-            var order = new Order
+            try
             {
-                OrderId = Guid.NewGuid(),
-                OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}",
-                AppUserId = userId,           // Buyer
-                UsersId = cartItem.usersid,   // Seller/Admin
-                ProductId = cartItem.ProductId,
-                CartItemId = cartItem.CartItemID,
-                SubTotalAmount = subTotal,
-                ShippingAmount = request.ShippingAmount,
-                TaxAmount = request.TaxAmount,
-                TotalAmount = total,
-                PaymentMethod = request.PaymentMethod ?? "COD",
-                PaymentStatus = "---",
-                OrderStatus = "New",
-                IsActive = true,
-                IsDeleted = false,
-                CreatedAt = DateTime.Now,
-            };
+                // 🛡 Validate mandatory fields
+                if (request == null ||
+                    string.IsNullOrWhiteSpace(request.FullName) ||
+                    string.IsNullOrWhiteSpace(request.Line1) ||
+                    string.IsNullOrWhiteSpace(request.City) ||
+                    string.IsNullOrWhiteSpace(request.PostalCode) ||
+                    string.IsNullOrWhiteSpace(request.Phone))
+                {
+                    return BadRequest("❌ Please fill all required details.");
+                }
 
-            // 🧩 Add Order Item (from Cart)
-            order.OrderItems = new List<OrderItem>
+                // 🧑‍💼 Validate user token
+                var userIdClaim = User.FindFirstValue("UserId");
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized("User ID missing in token.");
+
+                Guid userId = Guid.Parse(userIdClaim);
+
+                // 🛒 Fetch Cart Item
+                var cartItem = await _context.CartItems
+                    .FirstOrDefaultAsync(c => c.CartItemID == request.CartItemId && c.Appuserid == userId);
+
+                if (cartItem == null)
+                    return BadRequest("❌ Invalid or missing cart item.");
+
+                // 🧾 Amount calculations
+                decimal subTotal = cartItem.Price * cartItem.Quantity;
+                decimal total = subTotal + request.ShippingAmount + request.TaxAmount;
+
+                // 🧾 Create Order
+                var order = new Order
+                {
+                    OrderId = Guid.NewGuid(),
+                    OrderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(10000, 99999)}",
+                    AppUserId = userId,
+                    UsersId = cartItem.usersid,
+                    ProductId = cartItem.ProductId,
+                    CartItemId = cartItem.CartItemID,
+                    SubTotalAmount = subTotal,
+                    ShippingAmount = request.ShippingAmount,
+                    TaxAmount = request.TaxAmount,
+                    TotalAmount = total,
+                    PaymentMethod = request.PaymentMethod ?? "COD",
+                    PaymentStatus = "--",
+                    OrderStatus = "New",
+                    IsActive = true,
+                    IsDeleted = false,
+                    CreatedAt = DateTime.Now
+                };
+
+                // 🧩 Add Order Item
+                order.OrderItems = new List<OrderItem>
         {
             new OrderItem
             {
@@ -119,8 +133,8 @@ namespace User.Controllers
             }
         };
 
-            // 🏠 Add Address (from UI)
-            order.OrderAddresses = new List<OrderAddress>
+                // 🏠 Add Address
+                order.OrderAddresses = new List<OrderAddress>
         {
             new OrderAddress
             {
@@ -136,45 +150,48 @@ namespace User.Controllers
             }
         };
 
-            // 💳 Add Payment Info
-            order.OrderPayments = new List<OrderPayment>
+                // 💳 Add Payment
+                order.OrderPayments = new List<OrderPayment>
         {
             new OrderPayment
             {
                 OrderId = order.OrderId,
                 PaymentProvider = request.PaymentMethod ?? "COD",
                 Amount = total,
-                Status = "Pending"
+                Status = "--"
             }
         };
 
-            // 📜 Add Status History
-            order.OrderStatusHistory = new List<OrderStatusHistory>
+                // 📝 Status History
+                order.OrderStatusHistory = new List<OrderStatusHistory>
         {
             new OrderStatusHistory
             {
                 OrderId = order.OrderId,
                 FromStatus = "New",
                 ToStatus = "Pending",
-                Note = "Ordersuccessfully"
+                Note = "Order successfully created."
             }
         };
 
+                // 💾 Save
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
 
-            // 💾 Save All
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            // 🗑️ Optional: Remove item from cart
-            //   _context.CartItems.Remove(cartItem);
-            // await _context.SaveChangesAsync();
-
-            return Ok(new
+                return Ok(new
+                {
+                    message = "Order placed successfully!",
+                    orderId = order.OrderId,
+                    total = order.TotalAmount
+                });
+            }
+            catch (Exception ex)
             {
-                message = "Order placed successfully!",
-                orderId = order.OrderId,
-                total = order.TotalAmount
-            });
+                // Log error
+                Console.WriteLine( ex.Message);
+
+                return StatusCode(500, "❌ Something went wrong while placing order.");
+            }
         }
 
 

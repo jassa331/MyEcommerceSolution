@@ -22,6 +22,10 @@ namespace Admin.API.Controllers
         [HttpGet("order-status-chart")]
         public async Task<IActionResult> GetOrderStatusChart()
         {
+            // ✅ Extract UserId from token
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid parsedUserId))
+                return Unauthorized("Invalid or missing UserId claim in token.");
             var data = await _context.Orders
                 .GroupBy(o => o.OrderStatus)
                 .Select(g => new OrderStatusChartDto
@@ -37,18 +41,22 @@ namespace Admin.API.Controllers
         [HttpGet("stats")]
         public async Task<IActionResult> GetDashboardStats()
         {
+            // ✅ Extract UserId from token
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid parsedUserId))
+                return Unauthorized("Invalid or missing UserId claim in token.");
             var totalActiveProducts = await _context.Products
-     .CountAsync(p => p.IsActive == true && p.IsDeleted == false);
+     .CountAsync(p => (p.IsActive == true && p.IsDeleted == false) && p.Usersid == parsedUserId);
 
             var totalInactiveProducts = await _context.Products
-                .CountAsync(p => p.IsActive == false || p.IsDeleted == true);
+                .CountAsync(p => (p.IsActive == false || p.IsDeleted == true) && p.Usersid == parsedUserId);
 
 
             var onlinePayments = await _context.Orders
-                .CountAsync(o => o.PaymentMethod == "Online");
+                .CountAsync(o => (o.PaymentMethod == "Online") && o.Usersid == parsedUserId);
 
             var codPayments = await _context.Orders
-                .CountAsync(o => o.PaymentMethod == "COD");
+                .CountAsync(o => (o.PaymentMethod == "COD") && o.Usersid == parsedUserId);
 
             var result = new DashboardStatsDto
             {

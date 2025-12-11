@@ -7,9 +7,9 @@ namespace Admin.API.DAL
 {
     public class admindbcontext : DbContext
     {
-    
-   
-    
+
+
+
         public admindbcontext(DbContextOptions<admindbcontext> options) : base(options)
         {
 
@@ -22,10 +22,18 @@ namespace Admin.API.DAL
         public DbSet<AdminLogin> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<manageorders>().HasNoKey();
-            modelBuilder.Entity<OrderAddress>().HasNoKey();
-            modelBuilder.Entity<OrderItem>().HasNoKey();
+            modelBuilder.Entity<manageorders>()
+           .HasKey(o => o.OrderId);
+
+            // Address PK
+            modelBuilder.Entity<OrderAddress>()
+                .HasKey(a => a.OrderAddressId);
+
+            // Order Item PK
+            modelBuilder.Entity<OrderItem>()
+                .HasKey(i => i.OrderItemId);
             base.OnModelCreating(modelBuilder);
         }
     }
 }
+
