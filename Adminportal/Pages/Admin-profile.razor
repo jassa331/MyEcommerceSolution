@@ -2,7 +2,8 @@
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
-
+<div class="layout">
+    <Sidebar />
 <h3 style="text-align:center; color:#222;">👤 My Profile</h3>
 
 @if (isLoading)
@@ -39,7 +40,7 @@ else
         </div>
     </div>
 }
-
+</div>
 <style>
     .profile-container {
         display: flex;
