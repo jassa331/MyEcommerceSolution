@@ -36,7 +36,7 @@ public class InvoiceDocument : IDocument
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text("DHAMMI ESHOP").FontSize(20).Bold();
+                    col.Item().Text("𝓓𝓱𝓪𝓶𝓶𝓲's 𝓔-𝓼𝓱𝓸𝓹𝓮").FontSize(20).Bold();
                     col.Item().Text("www.dhammieshop.com").FontSize(10).FontColor(Colors.Grey.Darken1);
                 });
 
@@ -103,13 +103,13 @@ public class InvoiceDocument : IDocument
                     t.Item().Text($"Sub Total: ₹{_order.SubTotalAmount}");
                     t.Item().Text($"Shipping: ₹{_order.ShippingAmount}");
                     t.Item().Text($"Tax: ₹{_order.TaxAmount}");
-                    t.Item().Text($"Grand Total: ₹{_order.TotalAmount}")
+                    t.Item().Text($"Total: ₹{_order.TotalAmount}")
                         .Bold().FontSize(14);
                 });
 
                 // Footer
                 col.Item().PaddingTop(20).AlignCenter()
-                    .Text("Thank you for shopping with Dhammi Eshop! ❤️")
+                    .Text("Thank you for shopping with Dhammi's E-shop! ❤️")
                     .FontSize(12).Bold();
             });
         });
