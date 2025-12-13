@@ -78,7 +78,7 @@ public class ProductImageController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var products = await _context.Products
-            .Where(p => !p.IsDeleted)
+            .Where(p => !p.IsDeleted&&p.InStock==true)
             .ToListAsync();
 
         return Ok(products);

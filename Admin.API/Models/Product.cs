@@ -24,7 +24,7 @@ namespace Admin.API.NewFolder
 
             public string? ImageUrl { get; set; }
         public bool IsDeleted { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public Guid Usersid { get;  set; }
     }
 
