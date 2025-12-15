@@ -1,2 +1,103 @@
 ﻿@page "/payment_failed"
-<h1>payment fail</h1>
+
+<div class="payment-failed-container">
+    <div class="failed-card">
+        <div class="icon">❌</div>
+
+        <h2>Payment Failed!</h2>
+
+        <p class="message">
+            Oops! Your payment could not be processed.  
+            Please try again after some time.
+        </p>
+
+        
+
+            <button class="dashboard-btn" @onclick="GoToDashboard">
+                ⬅ Back to Dashboard
+            </button>
+        </div>
+    </div>
+
+<style >
+.payment-failed-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.failed-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    width: 420px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    animation: shake 0.6s ease-in-out;
+}
+
+.failed-card .icon {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.failed-card h2 {
+    color: #c62828;
+    margin-bottom: 10px;
+}
+
+.failed-card .message {
+    color: #555;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.retry-btn {
+        background: linear-gradient(135deg, #798a7b, #798a7b);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dashboard-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.retry-btn:hover,
+.dashboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+
+</style>
+
+@code {
+    [Inject] NavigationManager Navigation { get; set; }
+
+    void GoToDashboard()
+    {
+        Navigation.NavigateTo("/user-dashboard");
+    }
+}

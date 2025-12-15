@@ -1,5 +1,94 @@
 ﻿@page "/payment_success"
 
-<h3>🎉 Payment Successful!</h3>
-<p>Your order has been confirmed.</p>
+<div class="payment-success-container">
+    <div class="success-card">
+        <div class="icon">🎉</div>
 
+        <h2>Payment Successful!</h2>
+        <p class="message">
+            Thank you for your purchase.
+            Your order has been confirmed and is being processed.
+        </p>
+
+        <div class="details">
+            <span>✔ Secure Payment</span>
+            <span>✔ Instant Confirmation</span>
+        </div>
+
+        <button class="dashboard-btn" @onclick="GoToDashboard">
+            ⬅ Back to Shopping
+        </button>
+    </div>
+</div>
+<style>
+    .payment-success-container {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #d4fc79, #96e6a1);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .success-card {
+        background: #ffffff;
+        padding: 40px;
+        border-radius: 16px;
+        width: 420px;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+        .success-card .icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .success-card h2 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .success-card .message {
+            color: #555;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+    .details {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 25px;
+        font-size: 14px;
+        color: #2e7d32;
+        font-weight: 600;
+    }
+
+    .dashboard-btn {
+        background: linear-gradient(135deg, #43cea2, #185a9d);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .dashboard-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+
+   
+</style>
+
+@code {
+    [Inject] NavigationManager Navigation { get; set; }
+
+    void GoToDashboard()
+    {
+        Navigation.NavigateTo("/user-dashboard");
+    }
+}
