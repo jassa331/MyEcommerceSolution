@@ -1,3 +1,6 @@
+
+links always open in PC or laptop's
+
 http://dhammis.runasp.net/swagger/index.html
 
 
